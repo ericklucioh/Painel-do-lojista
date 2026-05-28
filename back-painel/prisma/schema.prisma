@@ -14,6 +14,7 @@ enum Role {
 model User {
   id           String   @id @default(cuid())
   fullName     String
+  cpf          String   @unique
   email        String   @unique
   passwordHash String
   role         Role
@@ -35,7 +36,7 @@ model Product {
   name          String
   salePrice     Decimal
   minStock      Int
-  maxStock      Int
+  maxStock      Int 
   deactivatedAt DateTime?
   deletedAt     DateTime?
   createdAt     DateTime @default(now())
@@ -84,6 +85,7 @@ model CashRegister {
 
   openedByUserId   String
   openedByUser     User        @relation(fields: [openedByUserId], references: [id])
+  activeOpenedByUserId String?    @unique
 
   initialBalance   Decimal
   status           StatusCash @default(ABERTO)
