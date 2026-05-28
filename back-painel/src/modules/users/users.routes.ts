@@ -3,19 +3,19 @@ import { requireRole } from "../../middlewares/requireRole";
 import type { UsersController } from "./users.controller";
 
 export interface CreateUsersRouterDependencies {
-  controller: UsersController;
+    controller: UsersController;
 }
 
 export function createUsersRouter({
-  controller,
+    controller,
 }: CreateUsersRouterDependencies): Router {
-  const router = Router();
+    const router = Router();
 
-  router.use(requireRole("ADMIN"));
-  router.get("/", controller.list);
-  router.post("/", controller.create);
-  router.put("/:id", controller.update);
-  router.patch("/:id/deactivate", controller.deactivate);
+    router.use(requireRole("ADMIN"));
+    router.get("/", controller.list);
+    router.post("/", controller.create);
+    router.put("/:id", controller.update);
+    router.patch("/:id/deactivate", controller.deactivate);
 
-  return router;
+    return router;
 }

@@ -1,31 +1,31 @@
 import { z } from "zod";
 
 export const AuthUserSchema = z.object({
-  id: z.string(),
-  nome: z.string(),
-  tipo: z.enum(["ADMIN", "VENDEDOR"]),
+    id: z.string(),
+    nome: z.string(),
+    tipo: z.enum(["ADMIN", "VENDEDOR"]),
 });
 
 export const AuthLoginInputSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
+    email: z.string().email(),
+    password: z.string().min(1),
 });
 
 export const AuthLoginResponseSchema = z.object({
-  accessToken: z.string(),
-  refreshToken: z.string(),
-  expiresIn: z.number().int().positive(),
-  user: AuthUserSchema,
+    accessToken: z.string(),
+    refreshToken: z.string(),
+    expiresIn: z.number().int().positive(),
+    user: AuthUserSchema,
 });
 
 export const AuthRefreshInputSchema = z.object({
-  refreshToken: z.string().min(1).optional(),
+    refreshToken: z.string().min(1).optional(),
 });
 
 export const AuthRefreshResponseSchema = z.object({
-  accessToken: z.string(),
-  refreshToken: z.string(),
-  expiresIn: z.number().int().positive(),
+    accessToken: z.string(),
+    refreshToken: z.string(),
+    expiresIn: z.number().int().positive(),
 });
 
 export type AuthUser = z.infer<typeof AuthUserSchema>;

@@ -2,16 +2,16 @@ import { Router } from "express";
 import type { AuthController } from "./auth.controller";
 
 export interface CreateAuthRouterDependencies {
-  controller: AuthController;
+    controller: AuthController;
 }
 
 export function createAuthRouter({
-  controller,
+    controller,
 }: CreateAuthRouterDependencies): Router {
-  const router = Router();
+    const router = Router();
 
-  router.post("/login", controller.login);
-  router.post("/refresh", controller.refresh);
+    router.post("/login", controller.login);
+    router.post("/refresh", controller.refresh);
 
-  return router;
+    return router;
 }
