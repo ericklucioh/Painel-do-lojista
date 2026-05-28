@@ -35,25 +35,25 @@ export function createProductsController({
     service,
 }: CreateProductsControllerDependencies): ProductsController {
     return {
-        list: asyncHandler((req, res) => {
+        list: asyncHandler(async (req, res) => {
             const parsedQuery = ProductQuerySchema.safeParse(req.query);
             if (!parsedQuery.success) {
                 sendValidationError(res, parsedQuery.error.issues);
                 return;
             }
 
-            const response = service.list(parsedQuery.data);
+            const response = await service.list(parsedQuery.data);
             res.status(200).json(response);
         }),
 
-        getByEan: asyncHandler((req, res) => {
+        getByEan: asyncHandler(async (req, res) => {
             const parsedParams = ProductByEanParamsSchema.safeParse(req.params);
             if (!parsedParams.success) {
                 sendValidationError(res, parsedParams.error.issues);
                 return;
             }
 
-            const product = service.getByEan(parsedParams.data.ean);
+            const product = await service.getByEan(parsedParams.data.ean);
             if (product === undefined) {
                 res.status(404).json({
                     message: "Product not found",
@@ -64,18 +64,18 @@ export function createProductsController({
             res.status(200).json(product);
         }),
 
-        create: asyncHandler((req, res) => {
+        create: asyncHandler(async (req, res) => {
             const parsedBody = CreateProductBodySchema.safeParse(req.body);
             if (!parsedBody.success) {
                 sendValidationError(res, parsedBody.error.issues);
                 return;
             }
 
-            const response = service.create(parsedBody.data);
+            const response = await service.create(parsedBody.data);
             res.status(201).json(response);
         }),
 
-        update: asyncHandler((req, res) => {
+        update: asyncHandler(async (req, res) => {
             const parsedParams = ProductIdParamsSchema.safeParse(req.params);
             if (!parsedParams.success) {
                 sendValidationError(res, parsedParams.error.issues);
@@ -88,7 +88,7 @@ export function createProductsController({
                 return;
             }
 
-            const response = service.update(
+            const response = await service.update(
                 parsedParams.data.id,
                 parsedBody.data,
             );
@@ -102,14 +102,14 @@ export function createProductsController({
             res.status(200).json(response);
         }),
 
-        deactivate: asyncHandler((req, res) => {
+        deactivate: asyncHandler(async (req, res) => {
             const parsedParams = ProductIdParamsSchema.safeParse(req.params);
             if (!parsedParams.success) {
                 sendValidationError(res, parsedParams.error.issues);
                 return;
             }
 
-            const response = service.deactivate(parsedParams.data.id);
+            const response = await service.deactivate(parsedParams.data.id);
             if (response === undefined) {
                 res.status(404).json({
                     message: "Product not found",

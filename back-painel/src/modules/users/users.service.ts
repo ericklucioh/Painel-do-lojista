@@ -1,6 +1,5 @@
 import { hash } from "bcryptjs";
 import { createHttpError } from "../../utils/httpError";
-import { usersListMock } from "../../mocks/users.mock";
 import type {
     CreateUserBody,
     CreateUserResponse,
@@ -13,83 +12,117 @@ import type {
     UsersQuery,
 } from "./users.schema";
 
-type UserStoreItem = UserDetailResponse & {
-    passwordHash: string;
+type UserRecord = {
+    id: string;
+    cpf: string;
+    fullName: string;
+    email: string;
+    role: "ADMIN" | "VENDEDOR";
+    deactivatedAt: Date | null;
+    deletedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
 };
 
 export interface UsersService {
-    list(query: UsersQuery): UsersListResponse;
+    list(query: UsersQuery): Promise<UsersListResponse>;
     create(input: CreateUserBody): Promise<CreateUserResponse>;
     update(id: string, input: UpdateUserBody): Promise<UpdateUserResponse>;
     deactivate(id: string): Promise<DeactivateUserResponse>;
 }
 
-function toListItem(user: UserStoreItem): UserListItemResponse {
+export interface CreateUsersServiceDependencies {
+    prisma: {
+        user: {
+            count(args: { where: unknown }): Promise<number>;
+            findMany(args: unknown): Promise<UserRecord[]>;
+            findUnique(args: unknown): Promise<unknown>;
+            create(args: unknown): Promise<UserRecord>;
+            update(args: unknown): Promise<UserRecord>;
+        };
+    };
+}
+
+function isActive(user: UserRecord): boolean {
+    return user.deactivatedAt === null && user.deletedAt === null;
+}
+
+function toListItem(user: UserRecord): UserListItemResponse {
     return {
         id: user.id,
         fullName: user.fullName,
         email: user.email,
         role: user.role,
-        isActive: user.isActive,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
+        isActive: isActive(user),
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString(),
     };
 }
 
-function toDetailItem(user: UserStoreItem): UserDetailResponse {
+function toDetailItem(user: UserRecord): UserDetailResponse {
     return {
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role,
-        isActive: user.isActive,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-        deletedAt: user.deletedAt,
+        ...toListItem(user),
+        deletedAt: user.deletedAt?.toISOString() ?? null,
     };
 }
 
-export function createUsersService(): UsersService {
-    const store = new Map<string, UserStoreItem>(
-        usersListMock.data.map((user) => [
-            user.id,
-            {
-                ...user,
-                deletedAt: null,
-                passwordHash: "mock-password-hash",
-            },
-        ]),
-    );
+function normalizeSearch(search: string | undefined): string | undefined {
+    const normalized = search?.trim().toLowerCase();
+    return normalized === undefined || normalized.length === 0
+        ? undefined
+        : normalized;
+}
 
-    let nextIndex = store.size + 1;
+function buildActiveWhere(search?: string) {
+    return {
+        deactivatedAt: null,
+        deletedAt: null,
+        ...(search === undefined
+            ? {}
+            : {
+                  OR: [
+                      {
+                          fullName: {
+                              contains: search,
+                          },
+                      },
+                      {
+                          email: {
+                              contains: search,
+                          },
+                      },
+                  ],
+              }),
+    };
+}
+
+export function createUsersService({
+    prisma,
+}: CreateUsersServiceDependencies): UsersService {
+    const pageSize = 10;
 
     return {
-        list(query) {
-            const normalizedSearch = query.search?.trim().toLowerCase();
-            const items = [...store.values()].filter((user) => {
-                if (!user.isActive) {
-                    return false;
-                }
+        async list(query) {
+            const search = normalizeSearch(query.search);
+            const where = buildActiveWhere(search);
 
-                if (normalizedSearch === undefined) {
-                    return true;
-                }
+            const totalItems = await prisma.user.count({ where });
 
-                return (
-                    user.fullName.toLowerCase().includes(normalizedSearch) ||
-                    user.email.toLowerCase().includes(normalizedSearch)
-                );
-            });
-
-            const pageSize = 10;
-            const totalItems = items.length;
             const totalPages =
                 totalItems === 0 ? 0 : Math.ceil(totalItems / pageSize);
             const page = Math.min(query.page, Math.max(totalPages, 1));
-            const start = (page - 1) * pageSize;
+
+            const users = await prisma.user.findMany({
+                where,
+                orderBy: {
+                    createdAt: "asc",
+                },
+                skip: (page - 1) * pageSize,
+                take: pageSize,
+            }) as UserRecord[];
 
             return {
-                data: items.slice(start, start + pageSize).map(toListItem),
+                data: users.map((user) => toListItem(user as UserRecord)),
                 page,
                 pageSize,
                 totalItems,
@@ -99,73 +132,88 @@ export function createUsersService(): UsersService {
         },
 
         async create(input) {
-            const emailExists = [...store.values()].some(
-                (user) => user.email === input.email,
-            );
-            if (emailExists) {
+            const existingUser = await prisma.user.findUnique({
+                where: {
+                    email: input.email,
+                },
+                select: {
+                    id: true,
+                },
+            }) as { id: string } | null;
+
+            if (existingUser !== null) {
                 throw createHttpError("Este e-mail já está registrado", 400);
             }
 
-            const now = new Date().toISOString();
             const passwordHash = await hash(input.password, 10);
-            const user: UserStoreItem = {
-                id: `user_${String(nextIndex).padStart(3, "0")}`,
-                fullName: input.fullName,
-                email: input.email,
-                role: input.role,
-                isActive: true,
-                createdAt: now,
-                updatedAt: now,
-                deletedAt: null,
-                passwordHash,
-            };
-
-            nextIndex += 1;
-            store.set(user.id, user);
+            const createdUser = await prisma.user.create({
+                data: {
+                    cpf: input.cpf,
+                    fullName: input.fullName,
+                    email: input.email,
+                    passwordHash,
+                    role: input.role,
+                    deactivatedAt: null,
+                    deletedAt: null,
+                },
+            });
 
             return {
-                user: toDetailItem(user),
+                user: toDetailItem(createdUser as UserRecord),
             };
         },
 
         async update(id, input) {
-            const current = store.get(id);
-            if (current === undefined || !current.isActive) {
+            const currentUser = await prisma.user.findUnique({
+                where: {
+                    id,
+                },
+            }) as UserRecord | null;
+
+            if (currentUser === null || !isActive(currentUser as UserRecord)) {
                 throw createHttpError("User not found", 404);
             }
 
-            const updated: UserStoreItem = {
-                ...current,
-                fullName: input.fullName ?? current.fullName,
-                role: input.role ?? current.role,
-                updatedAt: new Date().toISOString(),
-            };
-
-            store.set(id, updated);
+            const updatedUser = await prisma.user.update({
+                where: {
+                    id,
+                },
+                data: {
+                    fullName: input.fullName ?? currentUser.fullName,
+                    role: input.role ?? currentUser.role,
+                },
+            });
 
             return {
-                user: toDetailItem(updated),
+                user: toDetailItem(updatedUser as UserRecord),
             };
         },
 
         async deactivate(id) {
-            const current = store.get(id);
-            if (current === undefined || !current.isActive) {
+            const currentUser = await prisma.user.findUnique({
+                where: {
+                    id,
+                },
+            }) as UserRecord | null;
+
+            if (currentUser === null || !isActive(currentUser as UserRecord)) {
                 throw createHttpError("User not found", 404);
             }
 
-            const updated: UserStoreItem = {
-                ...current,
-                isActive: false,
-                deletedAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            };
-
-            store.set(id, updated);
+            const now = new Date();
+            const deactivatedUser = await prisma.user.update({
+                where: {
+                    id,
+                },
+                data: {
+                    deactivatedAt: now,
+                    deletedAt: now,
+                },
+            });
 
             return {
                 success: true,
-                user: toDetailItem(updated),
+                user: toDetailItem(deactivatedUser as UserRecord),
             };
         },
     };

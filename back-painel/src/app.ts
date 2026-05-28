@@ -4,6 +4,7 @@ import { errorHandler } from "./middlewares/errorHandler";
 import { createAuthController } from "./modules/auth/auth.controller";
 import { createAuthRouter } from "./modules/auth/auth.routes";
 import { createAuthService } from "./modules/auth/auth.service";
+import { prisma } from "./config/prisma";
 import { createUsersController } from "./modules/users/users.controller";
 import { createUsersRouter } from "./modules/users/users.routes";
 import { createUsersService } from "./modules/users/users.service";
@@ -27,11 +28,15 @@ export function createApp(): Express {
     const authController = createAuthController({
         service: authService,
     });
-    const productsService = createProductsService();
+    const productsService = createProductsService({
+        prisma,
+    });
     const productsController = createProductsController({
         service: productsService,
     });
-    const usersService = createUsersService();
+    const usersService = createUsersService({
+        prisma,
+    });
     const usersController = createUsersController({
         service: usersService,
     });

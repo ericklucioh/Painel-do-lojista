@@ -33,14 +33,15 @@ export function createUsersController({
     service,
 }: CreateUsersControllerDependencies): UsersController {
     return {
-        list: asyncHandler((req, res) => {
+        list: asyncHandler(async (req, res) => {
             const parsedQuery = UsersQuerySchema.safeParse(req.query);
             if (!parsedQuery.success) {
                 sendValidationError(res, parsedQuery.error.issues);
                 return;
             }
 
-            res.status(200).json(service.list(parsedQuery.data));
+            const response = await service.list(parsedQuery.data);
+            res.status(200).json(response);
         }),
 
         create: asyncHandler(async (req, res) => {
