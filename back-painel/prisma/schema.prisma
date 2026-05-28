@@ -87,3 +87,29 @@ model CashRegister {
   updatedAt        DateTime    @updatedAt
   deletedAt        DateTime?
 }
+
+enum TipoMovimentoCaixa {
+  ABERTURA
+  VENDA
+  CANCELAMENTO
+  ENTRADA
+  SAIDA
+}
+
+model CashMovement {
+  id              String             @id @default(cuid())
+
+  cashRegisterId  String
+  cashRegister    CashRegister       @relation(fields: [cashRegisterId], references: [id])
+
+  saleId          String?
+
+  type            TipoMovimentoCaixa
+  amount          Decimal
+  note            String?
+
+  createdByUserId String
+  createdByUser   User               @relation(fields: [createdByUserId], references: [id])
+
+  createdAt       DateTime           @default(now())
+}
