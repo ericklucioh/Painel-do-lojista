@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -22,6 +21,11 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   deletedAt    DateTime?
+
+  inventoryMovements InventoryMovement[]
+  openedCashRegisters CashRegister[]
+  cashMovementsCreated CashMovement[]
+  salesSold           Sale[]
 }
 
 
@@ -36,6 +40,9 @@ model Product {
   deletedAt     DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  inventoryMovements InventoryMovement[]
+  saleItems          SaleItem[]
 }
 
 enum InventoryMovementType {
@@ -86,6 +93,9 @@ model CashRegister {
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
   deletedAt        DateTime?
+
+  cashMovements    CashMovement[]
+  sales            Sale[]
 }
 
 enum TypeCashMovement {
@@ -103,6 +113,7 @@ model CashMovement {
   cashRegister    CashRegister       @relation(fields: [cashRegisterId], references: [id])
 
   saleId          String?
+  sale            Sale?              @relation(fields: [saleId], references: [id])
 
   type            TypeCashMovement
   amount          Decimal
@@ -114,4 +125,58 @@ model CashMovement {
   createdAt       DateTime           @default(now())
 }
 // ===========
+
+enum FormaPagamento {
+  DINHEIRO
+  CARTAO
+  PIX
+  CREDITO
+  DEBITO
+}
+
+enum StatusVenda {
+  CONFIRMADA
+  CANCELADA
+}
+
+model Sale {
+  id                  String               @id @default(cuid())
+  receiptNumber       Int                  @unique @default(autoincrement())
+
+  cashRegisterId      String
+  cashRegister        CashRegister         @relation(fields: [cashRegisterId], references: [id])
+
+  soldByUserId        String
+  soldByUser          User                 @relation(fields: [soldByUserId], references: [id])
+
+  subtotal            Decimal
+  discountAmount      Decimal              @default(0)
+  totalAmount         Decimal
+  paymentMethod       FormaPagamento
+  status              StatusVenda          @default(CONFIRMADA)
+  cancelledAt         DateTime?
+  cancelReason        String?
+
+  items               SaleItem[]
+  inventoryMovements  InventoryMovement[]
+  cashMovements       CashMovement[]
+
+  createdAt           DateTime             @default(now())
+}
+
+model SaleItem {
+  id                  String   @id @default(cuid())
+
+  saleId              String
+  sale                Sale     @relation(fields: [saleId], references: [id])
+
+  productId           String
+  product             Product  @relation(fields: [productId], references: [id])
+
+  productNameSnapshot String
+  productEanSnapshot  String
+  unitPriceSnapshot   Decimal
+  quantity            Int
+  subtotal            Decimal
+}
 
