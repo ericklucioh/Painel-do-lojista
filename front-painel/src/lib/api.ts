@@ -1,5 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import type { AuthRefreshResponse } from "@/types/api";
+import { clearAuthSessionCookie } from "@/lib/auth-session";
+import { useAuthStore } from "@/stores/auth.store";
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -58,6 +60,9 @@ api.interceptors.response.use(
             await refreshPromise;
             return api.request(originalRequest);
         } catch (refreshError) {
+            clearAuthSessionCookie();
+            useAuthStore.getState().clearSession();
+
             if (typeof window !== "undefined") {
                 window.location.assign("/login");
             }

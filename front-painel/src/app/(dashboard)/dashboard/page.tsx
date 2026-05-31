@@ -23,9 +23,20 @@ const sections = [
     },
 ];
 
-export default function DashboardHomePage() {
+export default function DashboardHomePage({
+    searchParams,
+}: {
+    searchParams?: {
+        accessDenied?: string;
+    };
+}) {
     return (
         <div className="space-y-6">
+            {searchParams?.accessDenied === "1" ? (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                    Acesso negado.
+                </div>
+            ) : null}
             <div className="space-y-2">
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
                     Dashboard

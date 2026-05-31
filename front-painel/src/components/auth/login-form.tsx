@@ -8,8 +8,25 @@ import axios from "axios";
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/auth.store";
 import { LoginSchema, type LoginFormValues } from "@/schemas/auth.schema";
+import { writeAuthSessionCookie } from "@/lib/auth-session";
 
-export function LoginForm() {
+function resolveRedirectTarget(nextPath: string | null): string {
+    if (nextPath === null || nextPath.trim().length === 0) {
+        return "/dashboard";
+    }
+
+    if (!nextPath.startsWith("/") || nextPath.startsWith("//")) {
+        return "/dashboard";
+    }
+
+    if (nextPath === "/login") {
+        return "/dashboard";
+    }
+
+    return nextPath;
+}
+
+export function LoginForm({ nextPath }: { nextPath: string | null }) {
     const router = useRouter();
     const setSession = useAuthStore((state) => state.setSession);
     const [serverError, setServerError] = useState<string | null>(null);
@@ -31,8 +48,9 @@ export function LoginForm() {
 
         try {
             const response = await authService.login(values);
+            writeAuthSessionCookie(response.user);
             setSession(response.user);
-            router.replace("/dashboard");
+            router.replace(resolveRedirectTarget(nextPath));
             router.refresh();
         } catch (error) {
             if (axios.isAxiosError(error)) {
