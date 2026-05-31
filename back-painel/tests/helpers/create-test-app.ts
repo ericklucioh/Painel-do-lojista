@@ -1,16 +1,14 @@
 import { createApp } from "../../src/app";
-import type { CreateAppDependencies } from "../../src/app";
-import {
-    createAuthControllerMock,
-    createProductsControllerMock,
-    createUsersControllerMock,
-} from "./controllers";
+import type { Express } from "express";
+import { createTestModules } from "./test-modules";
+import type { TestPrismaSeed } from "./test-prisma";
 
-export function createTestApp(deps: CreateAppDependencies = {}) {
+export function createTestApp(seed: Partial<TestPrismaSeed> = {}): Express {
+    const modules = createTestModules(seed);
+
     return createApp({
-        authController: createAuthControllerMock(),
-        usersController: createUsersControllerMock(),
-        productsController: createProductsControllerMock(),
-        ...deps,
+        authController: modules.authController,
+        usersController: modules.usersController,
+        productsController: modules.productsController,
     });
 }

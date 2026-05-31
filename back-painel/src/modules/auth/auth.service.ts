@@ -1,4 +1,5 @@
 import { compare } from "bcryptjs";
+import type { PrismaClient } from "@prisma/client";
 import {
     signAccessToken,
     signRefreshToken,
@@ -31,11 +32,7 @@ export interface AuthService {
 }
 
 export interface CreateAuthServiceDependencies {
-    prisma: {
-        user: {
-            findUnique(args: unknown): Promise<AuthUserRecord | null>;
-        };
-    };
+    prisma: Pick<PrismaClient, "user">;
 }
 
 function isActive(user: AuthUserRecord): boolean {

@@ -1,4 +1,5 @@
 import { hash } from "bcryptjs";
+import type { PrismaClient } from "@prisma/client";
 import { createHttpError } from "../../utils/httpError";
 import type {
     CreateUserBody,
@@ -32,15 +33,7 @@ export interface UsersService {
 }
 
 export interface CreateUsersServiceDependencies {
-    prisma: {
-        user: {
-            count(args: { where: unknown }): Promise<number>;
-            findMany(args: unknown): Promise<UserRecord[]>;
-            findUnique(args: unknown): Promise<unknown>;
-            create(args: unknown): Promise<UserRecord>;
-            update(args: unknown): Promise<UserRecord>;
-        };
-    };
+    prisma: Pick<PrismaClient, "user">;
 }
 
 function isActive(user: UserRecord): boolean {

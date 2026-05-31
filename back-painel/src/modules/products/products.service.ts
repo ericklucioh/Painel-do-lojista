@@ -1,3 +1,4 @@
+import type { PrismaClient } from "@prisma/client";
 import { createHttpError } from "../../utils/httpError";
 import type {
     CreateProductBody,
@@ -47,18 +48,7 @@ export interface ProductsService {
 }
 
 export interface CreateProductsServiceDependencies {
-    prisma: {
-        product: {
-            count(args: { where: unknown }): Promise<number>;
-            findMany(args: unknown): Promise<ProductRecord[]>;
-            findUnique(args: unknown): Promise<unknown>;
-            create(args: unknown): Promise<ProductRecord>;
-            update(args: unknown): Promise<ProductRecord>;
-        };
-        inventoryMovement: {
-            findMany(args: unknown): Promise<InventoryMovementRecord[]>;
-        };
-    };
+    prisma: Pick<PrismaClient, "product" | "inventoryMovement">;
 }
 
 function isActive(product: ProductRecord): boolean {
