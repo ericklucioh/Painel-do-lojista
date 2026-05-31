@@ -190,7 +190,7 @@ async function loadMovements(
     return prisma.inventoryMovement.findMany({
         where: {
             productId: {
-                in: productIds,
+                in: Array.from(productIds),
             },
         },
         select: {
@@ -348,7 +348,7 @@ export function createProductsService({
                 data: {
                     ean: input.ean ?? currentProduct.ean,
                     name: input.name ?? currentProduct.name,
-                    salePrice: input.price ?? currentProduct.salePrice,
+                    salePrice: input.price ?? toPrice(currentProduct.salePrice),
                     minStock: input.minStock ?? currentProduct.minStock,
                     maxStock: input.maxStock ?? currentProduct.maxStock,
                 },

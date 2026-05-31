@@ -1,23 +1,22 @@
-import prismaClientPackage from "@prisma/client";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { PrismaClient } from "@prisma/client";
 
-type PrismaClientConstructor = new () => {
-    $disconnect: () => Promise<void>;
-};
+let prisma: PrismaClient | undefined;
 
-const PrismaClient = (
-    prismaClientPackage as {
-        PrismaClient: PrismaClientConstructor;
+export function getPrisma(): PrismaClient {
+    if (prisma === undefined) {
+        const databaseUrl = process.env.DATABASE_URL?.trim();
+
+        if (!databaseUrl) {
+            throw new Error(
+                "DATABASE_URL is required to initialize PrismaClient",
+            );
+        }
+
+        prisma = new PrismaClient({
+            adapter: new PrismaMariaDb(databaseUrl),
+        });
     }
-).PrismaClient;
 
-const globalForPrisma = globalThis as unknown as {
-    prisma?: any;
-};
-
-export function getPrisma(): any {
-    if (globalForPrisma.prisma === undefined) {
-        globalForPrisma.prisma = new PrismaClient();
-    }
-
-    return globalForPrisma.prisma;
+    return prisma;
 }
