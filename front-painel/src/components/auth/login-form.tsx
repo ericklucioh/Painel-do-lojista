@@ -4,11 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import { authService } from "@/services/auth.service";
-import { useAuthStore } from "@/stores/auth.store";
 import { LoginSchema, type LoginFormValues } from "@/schemas/auth.schema";
-import { writeAuthSessionCookie } from "@/lib/auth-session";
 
 function resolveRedirectTarget(nextPath: string | null): string {
     if (nextPath === null || nextPath.trim().length === 0) {
@@ -28,7 +25,6 @@ function resolveRedirectTarget(nextPath: string | null): string {
 
 export function LoginForm({ nextPath }: { nextPath: string | null }) {
     const router = useRouter();
-    const setSession = useAuthStore((state) => state.setSession);
     const [serverError, setServerError] = useState<string | null>(null);
 
     const {
@@ -47,26 +43,16 @@ export function LoginForm({ nextPath }: { nextPath: string | null }) {
         setServerError(null);
 
         try {
-            const response = await authService.login(values);
-            writeAuthSessionCookie(response.user);
-            setSession(response.user);
+            await authService.login(values);
             router.replace(resolveRedirectTarget(nextPath));
             router.refresh();
         } catch (error) {
-            if (axios.isAxiosError(error)) {
-                const message =
-                    typeof error.response?.data === "object" &&
-                    error.response?.data !== null &&
-                    "message" in error.response.data &&
-                    typeof error.response.data.message === "string"
-                        ? error.response.data.message
-                        : "Não foi possível entrar no sistema.";
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Não foi possível entrar no sistema.";
 
-                setServerError(message);
-                return;
-            }
-
-            setServerError("Não foi possível entrar no sistema.");
+            setServerError(message);
         }
     });
 
@@ -80,8 +66,8 @@ export function LoginForm({ nextPath }: { nextPath: string | null }) {
                     Entrar no sistema
                 </h1>
                 <p className="text-sm leading-6 text-slate-600">
-                    Use o e-mail e a senha cadastrados. O backend envia JWT em
-                    cookie httpOnly e o Axios renova a sessão automaticamente.
+                    Use o e-mail e a senha cadastrados. O Next grava os
+                    cookies httpOnly e controla a sessão no servidor.
                 </p>
             </div>
 

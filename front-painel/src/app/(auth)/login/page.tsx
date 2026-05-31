@@ -1,13 +1,22 @@
+import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/login-form";
+import { getCurrentAuthSession } from "@/lib/auth-server";
 
-export default function LoginPage({
+export default async function LoginPage({
     searchParams,
 }: {
     searchParams?: {
         next?: string;
     };
 }) {
-    const nextPath = typeof searchParams?.next === "string" ? searchParams.next : null;
+    const session = await getCurrentAuthSession();
+
+    if (session !== null) {
+        redirect("/dashboard");
+    }
+
+    const nextPath =
+        typeof searchParams?.next === "string" ? searchParams.next : null;
 
     return (
         <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white/90 shadow-[0_30px_90px_rgba(15,23,42,0.12)] backdrop-blur">
@@ -23,9 +32,8 @@ export default function LoginPage({
                                 Login pronto para validar o fluxo do desafio.
                             </h2>
                             <p className="max-w-md text-sm leading-6 text-slate-300 sm:text-base">
-                                O backend responde com JWT em cookie httpOnly, o
-                                Axios renova a sessão automaticamente e a tela
-                                já está preparada com Zod e React Hook Form.
+                                O Next grava e lê os cookies httpOnly no
+                                servidor, permitindo proteção SSR real.
                             </p>
                         </div>
                     </div>
@@ -36,16 +44,15 @@ export default function LoginPage({
                                 JWT + Refresh
                             </strong>
                             <span className="mt-1 block leading-6">
-                                Sessão autenticada sem expor token no
-                                JavaScript.
+                                Sessão protegida no servidor.
                             </span>
                         </div>
                         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                             <strong className="block text-white">
-                                Validação Zod
+                                Validação SSR
                             </strong>
                             <span className="mt-1 block leading-6">
-                                E-mail e senha já tratados no formulário.
+                                Redirect antes de renderizar.
                             </span>
                         </div>
                     </div>

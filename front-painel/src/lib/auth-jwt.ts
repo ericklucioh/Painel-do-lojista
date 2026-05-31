@@ -1,16 +1,13 @@
 import type { UserRole } from "@/types/api";
 import { JWT_SECRET } from "@/lib/auth-config";
 
-type JwtHeader = {
-    alg?: string;
-    typ?: string;
-};
-
-type JwtPayload = {
+export type AuthTokenPayload = {
     sub?: string;
+    email?: string;
     nome?: string;
     tipo?: UserRole;
     exp?: number;
+    iat?: number;
 };
 
 const textEncoder = new TextEncoder();
@@ -51,7 +48,13 @@ function base64UrlDecode(value: string): string | null {
     }
 }
 
-function splitToken(token: string): [string, string, string] | null {
+function parseJwtParts(token: string):
+    | {
+          header: string;
+          payload: string;
+          signature: string;
+      }
+    | null {
     const parts = token.split(".");
 
     if (parts.length !== 3) {
@@ -63,10 +66,10 @@ function splitToken(token: string): [string, string, string] | null {
         return null;
     }
 
-    return [header, payload, signature];
+    return { header, payload, signature };
 }
 
-async function signHmacSha256(input: string, secret: string): Promise<string> {
+async function hmacSha256(input: string, secret: string): Promise<string> {
     const key = await crypto.subtle.importKey(
         "raw",
         textEncoder.encode(secret),
@@ -85,13 +88,25 @@ async function signHmacSha256(input: string, secret: string): Promise<string> {
 }
 
 export function decodeJwtPayload<T extends object>(token: string): T | null {
-    const parts = splitToken(token);
+    const parts = parseJwtParts(token);
     if (!parts) {
         return null;
     }
 
-    const [, payload] = parts;
-    const decoded = base64UrlDecode(payload);
+    const decoded = base64UrlDecode(parts.payload);
+    if (!decoded) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(decoded) as T;
+    } catch {
+        return null;
+    }
+}
+
+function decodeJwtSegment<T extends object>(segment: string): T | null {
+    const decoded = base64UrlDecode(segment);
     if (!decoded) {
         return null;
     }
@@ -105,32 +120,29 @@ export function decodeJwtPayload<T extends object>(token: string): T | null {
 
 export async function verifyAccessToken(
     token: string,
-): Promise<JwtPayload | null> {
-    const parts = splitToken(token);
+): Promise<AuthTokenPayload | null> {
+    const parts = parseJwtParts(token);
     if (!parts) {
         return null;
     }
 
-    const [headerSegment, payloadSegment, signature] = parts;
-
-    const header = decodeJwtPayload<JwtHeader>(
-        `${headerSegment}.${payloadSegment}.signature`,
+    const header = decodeJwtSegment<{ alg?: string; typ?: string }>(
+        parts.header,
     );
-
     if (header?.alg !== "HS256") {
         return null;
     }
 
-    const expectedSignature = await signHmacSha256(
-        `${headerSegment}.${payloadSegment}`,
+    const expectedSignature = await hmacSha256(
+        `${parts.header}.${parts.payload}`,
         JWT_SECRET,
     );
 
-    if (expectedSignature !== signature) {
+    if (expectedSignature !== parts.signature) {
         return null;
     }
 
-    const payload = decodeJwtPayload<JwtPayload>(token);
+    const payload = decodeJwtPayload<AuthTokenPayload>(token);
     if (
         payload === null ||
         typeof payload.sub !== "string" ||
@@ -147,8 +159,16 @@ export async function verifyAccessToken(
     return payload;
 }
 
-export function getUserRoleFromToken(token: string): UserRole | null {
-    const payload = decodeJwtPayload<JwtPayload>(token);
-
-    return payload?.tipo ?? null;
+export function getAuthUserFromPayload(
+    payload: AuthTokenPayload,
+): {
+    id: string;
+    nome: string;
+    tipo: UserRole;
+} {
+    return {
+        id: payload.sub ?? "",
+        nome: payload.nome ?? "",
+        tipo: payload.tipo ?? "VENDEDOR",
+    };
 }

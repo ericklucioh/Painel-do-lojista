@@ -1,16 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/auth.store";
-import { clearAuthSessionCookie } from "@/lib/auth-session";
 
 export function LogoutButton() {
     const router = useRouter();
-    const clearSession = useAuthStore((state) => state.clearSession);
 
-    const handleLogout = () => {
-        clearSession();
-        clearAuthSessionCookie();
+    const handleLogout = async () => {
+        await fetch("/api/auth/logout", {
+            method: "POST",
+        });
+
         router.replace("/login");
         router.refresh();
     };
