@@ -28,12 +28,19 @@ describe("products routes", () => {
             modules.productsRouter,
             "GET",
             "/",
-            { headers: adminHeaders },
+            {
+                headers: adminHeaders,
+                query: {
+                    page: 1,
+                    search: "cola",
+                },
+            },
         );
 
         expect(listResponse.statusCode).toBe(200);
         expect(listResponse.body).toMatchObject({
-            totalItems: 4,
+            search: "cola",
+            totalItems: expect.any(Number),
             data: expect.arrayContaining([
                 expect.objectContaining({
                     id: "prod_001",

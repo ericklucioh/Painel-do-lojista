@@ -15,6 +15,9 @@ export function createTestApp(): TestApp {
             authController: modules.authController,
             usersController: modules.usersController,
             productsController: modules.productsController,
+            stockController: modules.stockController,
+            salesController: modules.salesController,
+            cashRegistersController: modules.cashRegistersController,
         }),
         close: () => modules.close(),
     };

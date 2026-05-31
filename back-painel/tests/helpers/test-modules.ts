@@ -6,6 +6,12 @@ import { createProductsController } from "../../src/modules/products/products.co
 import { createProductsRouter } from "../../src/modules/products/products.routes";
 import { createProductsService } from "../../src/modules/products/products.service";
 import type { ProductsController } from "../../src/modules/products/products.controller";
+import { createCashRegistersController } from "../../src/modules/cash-registers/cash-registers.controller";
+import { createCashRegistersRouter } from "../../src/modules/cash-registers/cash-registers.routes";
+import { createSalesController } from "../../src/modules/sales/sales.controller";
+import { createSalesRouter } from "../../src/modules/sales/sales.routes";
+import { createStockController } from "../../src/modules/stock/stock.controller";
+import { createStockRouter } from "../../src/modules/stock/stock.routes";
 import { createUsersController } from "../../src/modules/users/users.controller";
 import { createUsersRouter } from "../../src/modules/users/users.routes";
 import { createUsersService } from "../../src/modules/users/users.service";
@@ -22,9 +28,15 @@ export interface TestModules {
     authController: AuthController;
     usersController: UsersController;
     productsController: ProductsController;
+    stockController: ReturnType<typeof createStockController>;
+    salesController: ReturnType<typeof createSalesController>;
+    cashRegistersController: ReturnType<typeof createCashRegistersController>;
     authRouter: ReturnType<typeof createAuthRouter>;
     usersRouter: ReturnType<typeof createUsersRouter>;
     productsRouter: ReturnType<typeof createProductsRouter>;
+    cashRegistersRouter: ReturnType<typeof createCashRegistersRouter>;
+    salesRouter: ReturnType<typeof createSalesRouter>;
+    stockRouter: ReturnType<typeof createStockRouter>;
     close(): Promise<void>;
 }
 
@@ -41,15 +53,26 @@ export function createTestModules(): TestModules {
     const productsController = createProductsController({
         service: createProductsService({ prisma: prismaForServices }),
     });
+    const stockController = createStockController();
+    const salesController = createSalesController();
+    const cashRegistersController = createCashRegistersController();
 
     return {
         prisma,
         authController,
         usersController,
         productsController,
+        stockController,
+        salesController,
+        cashRegistersController,
         authRouter: createAuthRouter({ controller: authController }),
         usersRouter: createUsersRouter({ controller: usersController }),
         productsRouter: createProductsRouter({ controller: productsController }),
+        cashRegistersRouter: createCashRegistersRouter({
+            controller: cashRegistersController,
+        }),
+        salesRouter: createSalesRouter({ controller: salesController }),
+        stockRouter: createStockRouter({ controller: stockController }),
         close: () => prisma.$disconnect(),
     };
 }
