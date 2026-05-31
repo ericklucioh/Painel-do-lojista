@@ -73,10 +73,8 @@ export function createApp({
                 prisma: getPrisma(),
             }),
         });
-    const resolvedStockController =
-        stockController ?? createStockController();
-    const resolvedSalesController =
-        salesController ?? createSalesController();
+    const resolvedStockController = stockController ?? createStockController();
+    const resolvedSalesController = salesController ?? createSalesController();
     const resolvedCashRegistersController =
         cashRegistersController ?? createCashRegistersController();
 
@@ -84,19 +82,33 @@ export function createApp({
         res.status(200).json({ ok: true });
     });
 
-    app.use("/api/auth", createAuthRouter({ controller: resolvedAuthController }));
+    app.use(
+        "/api/auth",
+        createAuthRouter({ controller: resolvedAuthController }),
+    );
     app.use(verifyToken);
-    app.use("/api/users", createUsersRouter({ controller: resolvedUsersController }));
+    app.use(
+        "/api/users",
+        createUsersRouter({ controller: resolvedUsersController }),
+    );
     app.use(
         "/api/products",
         createProductsRouter({ controller: resolvedProductsController }),
     );
     app.use(
         "/api/cash-registers",
-        createCashRegistersRouter({ controller: resolvedCashRegistersController }),
+        createCashRegistersRouter({
+            controller: resolvedCashRegistersController,
+        }),
     );
-    app.use("/api/stock", createStockRouter({ controller: resolvedStockController }));
-    app.use("/api/sales", createSalesRouter({ controller: resolvedSalesController }));
+    app.use(
+        "/api/stock",
+        createStockRouter({ controller: resolvedStockController }),
+    );
+    app.use(
+        "/api/sales",
+        createSalesRouter({ controller: resolvedSalesController }),
+    );
 
     app.use(errorHandler);
 

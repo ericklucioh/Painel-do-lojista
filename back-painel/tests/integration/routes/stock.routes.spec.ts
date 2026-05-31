@@ -89,9 +89,10 @@ describe("stock routes", () => {
             ]),
         });
 
-        const persistedMovements = await testApp.prisma.inventoryMovement.findMany({
-            where: { productId: "prod_001" },
-        });
+        const persistedMovements =
+            await testApp.prisma.inventoryMovement.findMany({
+                where: { productId: "prod_001" },
+            });
         expect(persistedMovements.length).toBeGreaterThanOrEqual(10);
     });
 

@@ -30,10 +30,16 @@ function toNumber(value: unknown): number {
 export function createStockController(): StockController {
     return {
         entry: asyncHandler(async (req, res) => {
-            const productId = String((req.body as { productId?: string }).productId ?? "");
-            const quantity = toNumber((req.body as { quantity?: unknown }).quantity ?? 0);
+            const productId = String(
+                (req.body as { productId?: string }).productId ?? "",
+            );
+            const quantity = toNumber(
+                (req.body as { quantity?: unknown }).quantity ?? 0,
+            );
             const note = (req.body as { note?: string | null }).note ?? null;
-            const reason = note ?? String((req.body as { reason?: string }).reason ?? "ENTRY");
+            const reason =
+                note ??
+                String((req.body as { reason?: string }).reason ?? "ENTRY");
 
             const response = StockMovementResponseSchema.parse({
                 movement: {
@@ -51,10 +57,16 @@ export function createStockController(): StockController {
         }),
 
         exit: asyncHandler(async (req, res) => {
-            const productId = String((req.body as { productId?: string }).productId ?? "");
-            const quantity = toNumber((req.body as { quantity?: unknown }).quantity ?? 0);
+            const productId = String(
+                (req.body as { productId?: string }).productId ?? "",
+            );
+            const quantity = toNumber(
+                (req.body as { quantity?: unknown }).quantity ?? 0,
+            );
             const note = (req.body as { note?: string | null }).note ?? null;
-            const reason = note ?? String((req.body as { reason?: string }).reason ?? "EXIT");
+            const reason =
+                note ??
+                String((req.body as { reason?: string }).reason ?? "EXIT");
 
             const response = StockMovementResponseSchema.parse({
                 movement: {

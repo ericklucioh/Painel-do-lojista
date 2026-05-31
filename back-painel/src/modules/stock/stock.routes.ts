@@ -14,7 +14,12 @@ export function createStockRouter({
 
     router.post("/entry", verifyToken, requireRole("ADMIN"), controller.entry);
     router.post("/exit", verifyToken, requireRole("ADMIN"), controller.exit);
-    router.get("/history", verifyToken, requireRole("ADMIN"), controller.history);
+    router.get(
+        "/history",
+        verifyToken,
+        requireRole("ADMIN"),
+        controller.history,
+    );
 
     return router;
 }

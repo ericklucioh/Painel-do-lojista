@@ -51,7 +51,9 @@ export function createAuthController({
                 return;
             }
 
-            const response = await service.refresh(parsedBody.data.refreshToken);
+            const response = await service.refresh(
+                parsedBody.data.refreshToken,
+            );
 
             res.status(200).json(response);
         }),

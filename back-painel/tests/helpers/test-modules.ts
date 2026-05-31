@@ -18,8 +18,7 @@ import { createUsersService } from "../../src/modules/users/users.service";
 import type { UsersController } from "../../src/modules/users/users.controller";
 import { createTestClient } from "./test-client";
 
-type TestPrismaForServices =
-    Parameters<typeof createAuthService>[0]["prisma"] &
+type TestPrismaForServices = Parameters<typeof createAuthService>[0]["prisma"] &
     Parameters<typeof createUsersService>[0]["prisma"] &
     Parameters<typeof createProductsService>[0]["prisma"];
 
@@ -67,7 +66,9 @@ export function createTestModules(): TestModules {
         cashRegistersController,
         authRouter: createAuthRouter({ controller: authController }),
         usersRouter: createUsersRouter({ controller: usersController }),
-        productsRouter: createProductsRouter({ controller: productsController }),
+        productsRouter: createProductsRouter({
+            controller: productsController,
+        }),
         cashRegistersRouter: createCashRegistersRouter({
             controller: cashRegistersController,
         }),

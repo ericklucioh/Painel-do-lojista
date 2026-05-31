@@ -48,7 +48,10 @@ export function createSalesController(): SalesController {
                     cashRegisterId: body.cashRegisterId ?? "",
                     soldByUserId: req.authUser?.sub ?? "",
                     soldByUserName: req.authUser?.nome ?? "",
-                    subtotal: items.reduce((total, item) => total + item.subtotal, 0),
+                    subtotal: items.reduce(
+                        (total, item) => total + item.subtotal,
+                        0,
+                    ),
                     discountAmount: toNumber(body.discountAmount ?? 0),
                     totalAmount: 0,
                     paymentMethod: body.paymentMethod ?? "DINHEIRO",
@@ -62,7 +65,9 @@ export function createSalesController(): SalesController {
         }),
 
         printReceipt: asyncHandler(async (req, res) => {
-            const saleId = String((req.body as { saleId?: string }).saleId ?? "");
+            const saleId = String(
+                (req.body as { saleId?: string }).saleId ?? "",
+            );
 
             const response = PrintReceiptResponseSchema.parse({
                 success: true,

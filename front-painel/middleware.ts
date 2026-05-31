@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchCurrentUserOnBackend, refreshOnBackend } from "@/lib/auth-backend";
 import {
-    clearAuthCookies,
-    setAuthCookies,
-} from "@/lib/auth-cookies";
+    fetchCurrentUserOnBackend,
+    refreshOnBackend,
+} from "@/lib/auth-backend";
+import { clearAuthCookies, setAuthCookies } from "@/lib/auth-cookies";
 import {
     ACCESS_TOKEN_COOKIE_NAME,
     REFRESH_TOKEN_COOKIE_NAME,
@@ -39,7 +39,9 @@ function isAdminPath(pathname: string): boolean {
 }
 
 function serializeCookies(entries: Array<[string, string]>): string {
-    return entries.map(([name, value]) => `${name}=${encodeURIComponent(value)}`).join("; ");
+    return entries
+        .map(([name, value]) => `${name}=${encodeURIComponent(value)}`)
+        .join("; ");
 }
 
 function buildRequestHeaders(

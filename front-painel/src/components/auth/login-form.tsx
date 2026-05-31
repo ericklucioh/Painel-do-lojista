@@ -66,8 +66,8 @@ export function LoginForm({ nextPath }: { nextPath: string | null }) {
                     Entrar no sistema
                 </h1>
                 <p className="text-sm leading-6 text-slate-600">
-                    Use o e-mail e a senha cadastrados. O Next grava os
-                    cookies httpOnly e controla a sessão no servidor.
+                    Use o e-mail e a senha cadastrados. O Next grava os cookies
+                    httpOnly e controla a sessão no servidor.
                 </p>
             </div>
 

@@ -33,7 +33,10 @@ function splitSegments(path: string): string[] {
     return normalized.replace(/^\/+/, "").split("/");
 }
 
-function matchPattern(pattern: string, actualPath: string): Record<string, string> | null {
+function matchPattern(
+    pattern: string,
+    actualPath: string,
+): Record<string, string> | null {
     const patternSegments = splitSegments(pattern);
     const actualSegments = splitSegments(actualPath);
 
@@ -93,7 +96,9 @@ export async function invokeRouterRoute(
 
     const params = matchPattern(routeLayer.route.path, path);
     if (params === null) {
-        throw new Error(`Route ${method.toUpperCase()} ${path} did not match pattern`);
+        throw new Error(
+            `Route ${method.toUpperCase()} ${path} did not match pattern`,
+        );
     }
 
     const middlewareHandlers = router.stack
@@ -102,7 +107,11 @@ export async function invokeRouterRoute(
     const routeHandlers = routeLayer.route.stack.map(
         (layer) => layer.handle as RequestHandler,
     );
-    const handlers = [...prependHandlers, ...middlewareHandlers, ...routeHandlers];
+    const handlers = [
+        ...prependHandlers,
+        ...middlewareHandlers,
+        ...routeHandlers,
+    ];
 
     const response: RouteInvocationResponse = {
         statusCode: 200,

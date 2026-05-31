@@ -37,7 +37,11 @@ export async function POST(request: NextRequest) {
         { status: 200 },
     );
 
-    setAuthCookies(response, backendResponse.data.accessToken, backendResponse.data.refreshToken);
+    setAuthCookies(
+        response,
+        backendResponse.data.accessToken,
+        backendResponse.data.refreshToken,
+    );
 
     return response;
 }

@@ -10,9 +10,10 @@ export const authService = {
             body: JSON.stringify(payload),
         });
 
-        const body = (await response.json().catch(() => null)) as
-            | { user?: AuthUser; message?: string }
-            | null;
+        const body = (await response.json().catch(() => null)) as {
+            user?: AuthUser;
+            message?: string;
+        } | null;
 
         if (!response.ok) {
             throw new Error(

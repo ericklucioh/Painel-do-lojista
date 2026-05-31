@@ -105,14 +105,14 @@ export function createUsersService({
                 totalItems === 0 ? 0 : Math.ceil(totalItems / pageSize);
             const page = Math.min(query.page, Math.max(totalPages, 1));
 
-            const users = await prisma.user.findMany({
+            const users = (await prisma.user.findMany({
                 where,
                 orderBy: {
                     createdAt: "asc",
                 },
                 skip: (page - 1) * pageSize,
                 take: pageSize,
-            }) as UserRecord[];
+            })) as UserRecord[];
 
             return {
                 data: users.map((user) => toListItem(user as UserRecord)),
@@ -125,14 +125,14 @@ export function createUsersService({
         },
 
         async create(input) {
-            const existingUser = await prisma.user.findUnique({
+            const existingUser = (await prisma.user.findUnique({
                 where: {
                     email: input.email,
                 },
                 select: {
                     id: true,
                 },
-            }) as { id: string } | null;
+            })) as { id: string } | null;
 
             if (existingUser !== null) {
                 throw createHttpError("Este e-mail já está registrado", 400);
@@ -157,11 +157,11 @@ export function createUsersService({
         },
 
         async update(id, input) {
-            const currentUser = await prisma.user.findUnique({
+            const currentUser = (await prisma.user.findUnique({
                 where: {
                     id,
                 },
-            }) as UserRecord | null;
+            })) as UserRecord | null;
 
             if (currentUser === null || !isActive(currentUser as UserRecord)) {
                 throw createHttpError("User not found", 404);
@@ -183,11 +183,11 @@ export function createUsersService({
         },
 
         async deactivate(id) {
-            const currentUser = await prisma.user.findUnique({
+            const currentUser = (await prisma.user.findUnique({
                 where: {
                     id,
                 },
-            }) as UserRecord | null;
+            })) as UserRecord | null;
 
             if (currentUser === null || !isActive(currentUser as UserRecord)) {
                 throw createHttpError("User not found", 404);

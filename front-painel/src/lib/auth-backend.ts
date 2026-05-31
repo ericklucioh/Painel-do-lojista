@@ -17,9 +17,7 @@ async function readJson<T>(
     return response.json().catch(() => null);
 }
 
-export async function loginOnBackend(
-    payload: AuthLoginInput,
-): Promise<{
+export async function loginOnBackend(payload: AuthLoginInput): Promise<{
     ok: boolean;
     status: number;
     data: AuthLoginResponse | null;
@@ -59,9 +57,7 @@ export async function loginOnBackend(
     }
 }
 
-export async function refreshOnBackend(
-    refreshToken: string,
-): Promise<{
+export async function refreshOnBackend(refreshToken: string): Promise<{
     ok: boolean;
     status: number;
     data: AuthRefreshResponse | null;
@@ -101,9 +97,7 @@ export async function refreshOnBackend(
     }
 }
 
-export async function logoutOnBackend(
-    refreshToken: string,
-): Promise<{
+export async function logoutOnBackend(refreshToken: string): Promise<{
     ok: boolean;
     status: number;
     message: string;
@@ -140,9 +134,7 @@ export async function logoutOnBackend(
     }
 }
 
-export async function fetchCurrentUserOnBackend(
-    accessToken: string,
-): Promise<{
+export async function fetchCurrentUserOnBackend(accessToken: string): Promise<{
     ok: boolean;
     status: number;
     data: AuthUser | null;

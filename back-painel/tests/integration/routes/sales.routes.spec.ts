@@ -111,7 +111,9 @@ describe("sales routes", () => {
         expect(persistedSale).not.toBeNull();
         expect(persistedSale?.status).toBe("CANCELADA");
         expect(persistedSale?.items.length).toBe(2);
-        expect(persistedSale?.inventoryMovements.length).toBeGreaterThanOrEqual(2);
+        expect(persistedSale?.inventoryMovements.length).toBeGreaterThanOrEqual(
+            2,
+        );
         expect(persistedSale?.cashMovements.length).toBeGreaterThanOrEqual(1);
     });
 });

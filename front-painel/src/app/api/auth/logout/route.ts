@@ -1,9 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { logoutOnBackend } from "@/lib/auth-backend";
-import {
-    clearAuthCookies,
-    readCookieValue,
-} from "@/lib/auth-cookies";
+import { clearAuthCookies, readCookieValue } from "@/lib/auth-cookies";
 import { REFRESH_TOKEN_COOKIE_NAME } from "@/lib/auth-config";
 
 export async function POST(request: NextRequest) {

@@ -43,7 +43,10 @@ export interface ProductsService {
     list(query: ProductQuery): Promise<ProductsListResponse>;
     getByEan(ean: string): Promise<ProductByEanResponse | undefined>;
     create(input: CreateProductBody): Promise<CreateProductResponse>;
-    update(id: string, input: UpdateProductBody): Promise<UpdateProductResponse>;
+    update(
+        id: string,
+        input: UpdateProductBody,
+    ): Promise<UpdateProductResponse>;
     deactivate(id: string): Promise<DeactivateProductResponse>;
 }
 
@@ -59,7 +62,10 @@ function toPrice(value: ProductRecord["salePrice"]): number {
     return typeof value === "number" ? value : value.toNumber();
 }
 
-function calculateMovementDelta(type: InventoryMovementRecord["type"], quantity: number): number {
+function calculateMovementDelta(
+    type: InventoryMovementRecord["type"],
+    quantity: number,
+): number {
     switch (type) {
         case "COMPRA":
         case "DEVOLUCAO":
@@ -83,12 +89,15 @@ function calculateStockCurrent(
         .filter((movement) => movement.productId === productId)
         .reduce(
             (total, movement) =>
-                total + calculateMovementDelta(movement.type, movement.quantity),
+                total +
+                calculateMovementDelta(movement.type, movement.quantity),
             0,
         );
 }
 
-function deriveIsCritical(item: Pick<ProductListItemResponse, "stockCurrent" | "minStock">): boolean {
+function deriveIsCritical(
+    item: Pick<ProductListItemResponse, "stockCurrent" | "minStock">,
+): boolean {
     return item.stockCurrent <= item.minStock;
 }
 
@@ -257,14 +266,14 @@ export function createProductsService({
             }
 
             if (!isActive(product as ProductRecord)) {
-                throw createHttpError(
-                    "Produto não disponível para venda",
-                    404,
-                );
+                throw createHttpError("Produto não disponível para venda", 404);
             }
 
             const movementRows = await loadMovements(prisma, [product.id]);
-            const stockCurrent = calculateStockCurrent(product.id, movementRows);
+            const stockCurrent = calculateStockCurrent(
+                product.id,
+                movementRows,
+            );
 
             return toByEanItem(product as ProductRecord, stockCurrent);
         },
@@ -307,7 +316,10 @@ export function createProductsService({
                 },
             })) as ProductRecord | null;
 
-            if (currentProduct === null || !isActive(currentProduct as ProductRecord)) {
+            if (
+                currentProduct === null ||
+                !isActive(currentProduct as ProductRecord)
+            ) {
                 throw createHttpError("Product not found", 404);
             }
 
@@ -342,14 +354,19 @@ export function createProductsService({
                 },
             });
 
-            const movementRows = await loadMovements(prisma, [updatedProduct.id]);
+            const movementRows = await loadMovements(prisma, [
+                updatedProduct.id,
+            ]);
             const stockCurrent = calculateStockCurrent(
                 updatedProduct.id,
                 movementRows,
             );
 
             return {
-                product: toDetailItem(updatedProduct as ProductRecord, stockCurrent),
+                product: toDetailItem(
+                    updatedProduct as ProductRecord,
+                    stockCurrent,
+                ),
             };
         },
 
@@ -360,7 +377,10 @@ export function createProductsService({
                 },
             })) as ProductRecord | null;
 
-            if (currentProduct === null || !isActive(currentProduct as ProductRecord)) {
+            if (
+                currentProduct === null ||
+                !isActive(currentProduct as ProductRecord)
+            ) {
                 throw createHttpError("Product not found", 404);
             }
 
@@ -375,7 +395,9 @@ export function createProductsService({
                 },
             });
 
-            const movementRows = await loadMovements(prisma, [deactivatedProduct.id]);
+            const movementRows = await loadMovements(prisma, [
+                deactivatedProduct.id,
+            ]);
             const stockCurrent = calculateStockCurrent(
                 deactivatedProduct.id,
                 movementRows,
