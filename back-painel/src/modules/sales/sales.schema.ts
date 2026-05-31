@@ -29,6 +29,18 @@ export const CreateSaleResponseSchema = z.object({
     sale: SaleDtoSchema,
 });
 
+export const PrintReceiptResponseSchema = z.object({
+    success: z.literal(true),
+    saleId: z.string().optional(),
+});
+
+export const CancelSaleResponseSchema = z.object({
+    success: z.literal(true),
+    sale: SaleDtoSchema,
+});
+
 export type SaleItem = z.infer<typeof SaleItemSchema>;
 export type SaleDto = z.infer<typeof SaleDtoSchema>;
 export type CreateSaleResponse = z.infer<typeof CreateSaleResponseSchema>;
+export type PrintReceiptResponse = z.infer<typeof PrintReceiptResponseSchema>;
+export type CancelSaleResponse = z.infer<typeof CancelSaleResponseSchema>;

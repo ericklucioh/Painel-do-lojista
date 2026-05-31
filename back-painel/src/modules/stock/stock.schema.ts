@@ -19,5 +19,10 @@ export const StockHistoryResponseSchema = z.object({
     data: z.array(StockMovementSchema),
 });
 
+export const StockMovementResponseSchema = z.object({
+    movement: StockMovementSchema,
+});
+
 export type StockMovement = z.infer<typeof StockMovementSchema>;
 export type StockHistoryResponse = z.infer<typeof StockHistoryResponseSchema>;
+export type StockMovementResponse = z.infer<typeof StockMovementResponseSchema>;
