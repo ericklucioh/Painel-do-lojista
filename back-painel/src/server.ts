@@ -1,5 +1,7 @@
-import "dotenv/config";
+import { config as loadEnv } from "dotenv";
 import { createApp } from "./app";
+
+loadEnv({ override: true });
 
 const PORT = Number(process.env.PORT ?? 3001);
 

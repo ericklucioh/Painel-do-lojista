@@ -1,5 +1,8 @@
+import { config as loadEnv } from "dotenv";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "@prisma/client";
+
+loadEnv({ override: true });
 
 let prisma: PrismaClient | undefined;
 

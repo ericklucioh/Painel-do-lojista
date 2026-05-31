@@ -1,9 +1,15 @@
-import "dotenv/config";
+import { config as loadEnv } from "dotenv";
 import { defineConfig, env } from "prisma/config";
+
+loadEnv({ override: true });
 
 export default defineConfig({
     schema: "prisma/schema.prisma",
+    migrations: {
+        path: "prisma/migrations",
+    },
     datasource: {
         url: env("DATABASE_URL"),
+        shadowDatabaseUrl: env("SHADOW_DATABASE_URL"),
     },
 });
