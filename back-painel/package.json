@@ -9,6 +9,7 @@
         "start": "node dist/server.js",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
+        "prisma:generate": "prisma generate --config prisma.config.ts",
         "prisma:test:generate": "prisma generate --config prisma/test.config.ts",
         "prisma:test:reset": "prisma db push --force-reset --config prisma/test.config.ts && node prisma/test/seed.mjs",
         "test": "npm run prisma:test:generate && vitest",

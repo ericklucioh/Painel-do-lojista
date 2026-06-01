@@ -5,9 +5,9 @@ import { getCurrentAuthSession } from "@/lib/auth-server";
 export default async function LoginPage({
     searchParams,
 }: {
-    searchParams?: {
+    searchParams?: Promise<{
         next?: string;
-    };
+    }>;
 }) {
     const session = await getCurrentAuthSession();
 
@@ -15,8 +15,8 @@ export default async function LoginPage({
         redirect("/dashboard");
     }
 
-    const nextPath =
-        typeof searchParams?.next === "string" ? searchParams.next : null;
+    const params = searchParams ? await searchParams : null;
+    const nextPath = typeof params?.next === "string" ? params.next : null;
 
     return (
         <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white/90 shadow-[0_30px_90px_rgba(15,23,42,0.12)] backdrop-blur">

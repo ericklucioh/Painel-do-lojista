@@ -1,7 +1,7 @@
 import { config as loadEnv } from "dotenv";
 import { createApp } from "./app";
 
-loadEnv({ override: true });
+loadEnv({ override: process.env.DOCKER_DEV !== "true" });
 
 const PORT = Number(process.env.PORT ?? 3001);
 

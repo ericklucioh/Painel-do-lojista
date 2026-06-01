@@ -2,7 +2,7 @@ import { config as loadEnv } from "dotenv";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "@prisma/client";
 
-loadEnv({ override: true });
+loadEnv({ override: process.env.DOCKER_DEV !== "true" });
 
 let prisma: PrismaClient | undefined;
 

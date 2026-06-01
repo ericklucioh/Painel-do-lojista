@@ -34,5 +34,69 @@ services:
     environment:
       ADMINER_DEFAULT_SERVER: mysql
 
+  back-painel:
+    build:
+      context: ./back-painel
+      dockerfile: Dockerfile.dev
+    container_name: painel-lojista-back-painel
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    environment:
+      DOCKER_DEV: "true"
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: ${DATABASE_URL_DOCKER}
+      SHADOW_DATABASE_URL: ${SHADOW_DATABASE_URL_DOCKER}
+    volumes:
+      - ./back-painel:/app
+      - back_painel_node_modules:/app/node_modules
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:3001/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  front-painel:
+    build:
+      context: ./front-painel
+      dockerfile: Dockerfile.dev
+    container_name: painel-lojista-front-painel
+    restart: unless-stopped
+    depends_on:
+      back-painel:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      BACKEND_URL: http://back-painel:3001
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+    volumes:
+      - ./front-painel:/app
+      - front_painel_node_modules:/app/node_modules
+      - front_painel_next:/app/.next
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:3000').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
 volumes:
   mysql_data:
+  back_painel_node_modules:
+  front_painel_node_modules:
+  front_painel_next:
