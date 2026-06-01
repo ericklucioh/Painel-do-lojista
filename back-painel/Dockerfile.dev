@@ -6,4 +6,4 @@ COPY package*.json ./
 
 EXPOSE 3001
 
-CMD ["sh", "-lc", "set -e; current_node_version=$(node -p 'process.version'); stored_node_version=$(cat node_modules/.node-version 2>/dev/null || true); if [ \"$stored_node_version\" != \"$current_node_version\" ] || [ ! -x node_modules/.bin/prisma ]; then mkdir -p node_modules && find node_modules -mindepth 1 -maxdepth 1 -exec rm -rf {} + && npm install --no-audit --no-fund && echo \"$current_node_version\" > node_modules/.node-version; fi && npm run prisma:generate && npm run dev"]
+CMD ["sh", "-lc", "set -e; current_node_version=$(node -p 'process.version'); stored_node_version=$(cat node_modules/.node-version 2>/dev/null || true); if [ \"$stored_node_version\" != \"$current_node_version\" ] || [ ! -x node_modules/.bin/prisma ]; then mkdir -p node_modules && find node_modules -mindepth 1 -maxdepth 1 -exec rm -rf {} + && npm install --no-audit --no-fund && echo \"$current_node_version\" > node_modules/.node-version; fi && npm run prisma:migrate:deploy && npm run prisma:generate && npm run prisma:seed && npm run dev"]

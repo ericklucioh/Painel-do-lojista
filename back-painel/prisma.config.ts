@@ -1,7 +1,7 @@
 import { config as loadEnv } from "dotenv";
 import { defineConfig, env } from "prisma/config";
 
-loadEnv({ override: true });
+loadEnv({ override: process.env.DOCKER_DEV !== "true" });
 
 export default defineConfig({
     schema: "prisma/schema.prisma",

@@ -73,8 +73,6 @@ function createAuthResponse(
 export function createAuthService({
     prisma,
 }: CreateAuthServiceDependencies): AuthService {
-    const refreshTokenStore = new Map<string, string>();
-
     return {
         async login(input) {
             const account = await prisma.user.findUnique({
@@ -99,8 +97,6 @@ export function createAuthService({
             const accessToken = signAccessToken(payload);
             const refreshToken = signRefreshToken(payload);
 
-            refreshTokenStore.set(refreshToken, account.id);
-
             return createAuthResponse(
                 toAuthUser(account),
                 accessToken,
@@ -113,15 +109,10 @@ export function createAuthService({
                 throw createHttpError("Refresh token ausente", 401);
             }
 
-            if (!refreshTokenStore.has(refreshToken)) {
-                throw createHttpError("Refresh token inválido", 401);
-            }
-
             let decoded: AuthTokenPayload;
             try {
                 decoded = verifyRefreshToken(refreshToken);
             } catch {
-                refreshTokenStore.delete(refreshToken);
                 throw createHttpError("Refresh token inválido", 401);
             }
 
@@ -132,17 +123,12 @@ export function createAuthService({
             });
 
             if (account === null || !isActive(account)) {
-                refreshTokenStore.delete(refreshToken);
                 throw createHttpError("Refresh token inválido", 401);
             }
-
-            refreshTokenStore.delete(refreshToken);
 
             const payload = createTokenPayload(account);
             const nextAccessToken = signAccessToken(payload);
             const nextRefreshToken = signRefreshToken(payload);
-
-            refreshTokenStore.set(nextRefreshToken, account.id);
 
             return {
                 accessToken: nextAccessToken,
