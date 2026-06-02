@@ -24,17 +24,21 @@ describe("stock routes", () => {
             .set("Authorization", bearer(admin.accessToken))
             .send({
                 productId: "prod_001",
+                type: "COMPRA",
                 quantity: 5,
-                reason: "COMPRA",
                 note: "Reposição",
             });
 
         expect(entryResponse.statusCode).toBe(201);
         expect(entryResponse.body).toMatchObject({
+            stockCurrent: 23,
             movement: {
+                productId: "prod_001",
+                productName: "Refrigerante Cola 2L",
                 type: "ENTRY",
                 reason: "COMPRA",
                 quantity: 5,
+                balanceBefore: 18,
                 balanceAfter: 23,
                 note: "Reposição",
             },
@@ -45,17 +49,21 @@ describe("stock routes", () => {
             .set("Authorization", bearer(admin.accessToken))
             .send({
                 productId: "prod_001",
+                type: "PERDA",
                 quantity: 2,
-                reason: "PERDA",
                 note: "Avaria",
             });
 
         expect(exitResponse.statusCode).toBe(201);
         expect(exitResponse.body).toMatchObject({
+            stockCurrent: 21,
             movement: {
+                productId: "prod_001",
+                productName: "Refrigerante Cola 2L",
                 type: "EXIT",
                 reason: "PERDA",
                 quantity: 2,
+                balanceBefore: 23,
                 balanceAfter: 21,
                 note: "Avaria",
             },
@@ -75,14 +83,22 @@ describe("stock routes", () => {
             },
             data: expect.arrayContaining([
                 expect.objectContaining({
+                    productId: "prod_001",
+                    productName: "Refrigerante Cola 2L",
                     type: "ENTRY",
+                    reason: "COMPRA",
                     quantity: 5,
+                    balanceBefore: 18,
                     balanceAfter: 23,
                     note: "Reposição",
                 }),
                 expect.objectContaining({
+                    productId: "prod_001",
+                    productName: "Refrigerante Cola 2L",
                     type: "EXIT",
+                    reason: "PERDA",
                     quantity: 2,
+                    balanceBefore: 23,
                     balanceAfter: 21,
                     note: "Avaria",
                 }),
@@ -104,17 +120,21 @@ describe("stock routes", () => {
             .set("Authorization", bearer(admin.accessToken))
             .send({
                 productId: "prod_004",
+                type: "PERDA",
                 quantity: 10,
-                reason: "PERDA",
                 note: "Quebra",
             });
 
         expect(response.statusCode).toBe(201);
         expect(response.body).toMatchObject({
+            stockCurrent: -6,
             movement: {
+                productId: "prod_004",
+                productName: "Leite Integral 1L",
                 type: "EXIT",
                 reason: "PERDA",
                 quantity: 10,
+                balanceBefore: 4,
                 balanceAfter: -6,
                 note: "Quebra",
             },

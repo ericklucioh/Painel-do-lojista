@@ -23,19 +23,22 @@ describe("cash-registers routes", () => {
             .post("/api/cash-registers/open")
             .set("Authorization", bearer(vendor.accessToken))
             .send({
-                saldo_inicial: 150,
-                observacao: "Abertura do PDV",
+                initialBalance: 150,
+                note: "Abertura do PDV",
             });
 
         expect(response.statusCode).toBe(201);
         expect(response.body).toMatchObject({
             cashRegister: {
+                id: expect.any(String),
                 openedByUserId: "user_vendor_1",
-                activeOpenedByUserId: "user_vendor_1",
+                openedByUserName: "Joao Vendedor",
                 initialBalance: 150,
-                status: "ABERTO",
+                currentBalance: 150,
+                status: "OPEN",
+                note: "Abertura do PDV",
+                openedAt: expect.any(String),
                 closedAt: null,
-                deletedAt: null,
             },
         });
     });

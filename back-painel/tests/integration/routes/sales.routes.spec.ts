@@ -23,8 +23,8 @@ describe("sales routes", () => {
             .post("/api/cash-registers/open")
             .set("Authorization", bearer(vendor.accessToken))
             .send({
-                saldo_inicial: 200,
-                observacao: "Abertura do PDV",
+                initialBalance: 200,
+                note: "Abertura do PDV",
             });
 
         expect(openResponse.statusCode).toBe(201);
@@ -59,13 +59,19 @@ describe("sales routes", () => {
                 items: expect.arrayContaining([
                     expect.objectContaining({
                         productId: "prod_001",
+                        productNameSnapshot: "Refrigerante Cola 2L",
+                        productEanSnapshot: "7891000100015",
                         quantity: 1,
                         unitPriceSnapshot: 12.9,
+                        subtotal: 12.9,
                     }),
                     expect.objectContaining({
                         productId: "prod_002",
+                        productNameSnapshot: "Arroz 5kg",
+                        productEanSnapshot: "7891000100022",
                         quantity: 2,
                         unitPriceSnapshot: 29.9,
+                        subtotal: 59.8,
                     }),
                 ]),
             },
@@ -83,6 +89,7 @@ describe("sales routes", () => {
         expect(printResponse.statusCode).toBe(200);
         expect(printResponse.body).toMatchObject({
             success: true,
+            message: "Recibo impresso com sucesso",
             saleId,
         });
 
@@ -92,11 +99,9 @@ describe("sales routes", () => {
 
         expect(cancelResponse.statusCode).toBe(200);
         expect(cancelResponse.body).toMatchObject({
-            success: true,
-            sale: {
-                id: saleId,
-                status: "CANCELLED",
-            },
+            saleId,
+            status: "CANCELLED",
+            reverted: true,
         });
 
         const persistedSale = await testApp.prisma.sale.findUnique({

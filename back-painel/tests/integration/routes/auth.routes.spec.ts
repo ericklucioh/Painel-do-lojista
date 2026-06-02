@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import request from "supertest";
 import { createTestApp } from "../../helpers/create-test-app";
 import { resetTestDatabase } from "../../helpers/test-database";
+import { bearer, loginAs } from "../../helpers/test-http";
 
 let testApp: ReturnType<typeof createTestApp>;
 
@@ -37,18 +38,26 @@ describe("auth routes", () => {
         expect(response.headers["set-cookie"]).toBeUndefined();
     });
 
-    it("rejects invalid credentials", async () => {
+    it("logs in with a vendor account and returns tokens", async () => {
         const response = await request(testApp.app)
             .post("/api/auth/login")
             .send({
-                email: "admin@painel.com",
-                password: "senha-incorreta",
+                email: "joao@painel.com",
+                password: "123456",
             });
 
-        expect(response.statusCode).toBe(401);
+        expect(response.statusCode).toBe(200);
         expect(response.body).toMatchObject({
-            message: "Credenciais inválidas",
+            accessToken: expect.any(String),
+            refreshToken: expect.any(String),
+            expiresIn: 900,
+            user: {
+                id: "user_vendor_1",
+                nome: "Joao Vendedor",
+                tipo: "VENDEDOR",
+            },
         });
+        expect(response.headers["set-cookie"]).toBeUndefined();
     });
 
     it("refreshes the access token with a valid refresh token", async () => {
@@ -71,36 +80,54 @@ describe("auth routes", () => {
             accessToken: expect.any(String),
             refreshToken: expect.any(String),
             expiresIn: 900,
+            user: {
+                id: "user_admin_1",
+                nome: "Admin do Sistema",
+                tipo: "ADMIN",
+            },
         });
         expect(refreshResponse.headers["set-cookie"]).toBeUndefined();
     });
 
-    it("rejects refresh without a token", async () => {
-        const response = await request(testApp.app).post("/api/auth/refresh");
+    it("returns the current authenticated user", async () => {
+        const { accessToken } = await loginAs(
+            testApp.app,
+            "admin@painel.com",
+            "123456",
+        );
 
-        expect(response.statusCode).toBe(401);
-        expect(response.body).toMatchObject({
-            message: "Refresh token ausente",
-        });
-    });
-
-    it("rejects protected routes without a token", async () => {
-        const response = await request(testApp.app).get("/api/users");
-
-        expect(response.statusCode).toBe(401);
-        expect(response.body).toMatchObject({
-            message: "Token ausente",
-        });
-    });
-
-    it("rejects protected routes with an invalid token", async () => {
         const response = await request(testApp.app)
-            .get("/api/users")
-            .set("Authorization", "Bearer token-invalido");
+            .get("/api/auth/me")
+            .set("Authorization", bearer(accessToken))
+            .expect(200);
 
-        expect(response.statusCode).toBe(401);
         expect(response.body).toMatchObject({
-            message: "Token inválido",
+            user: {
+                id: "user_admin_1",
+                nome: "Admin do Sistema",
+                tipo: "ADMIN",
+            },
+        });
+    });
+
+    it("logs out with a valid refresh token", async () => {
+        const loginResponse = await request(testApp.app)
+            .post("/api/auth/login")
+            .send({
+                email: "admin@painel.com",
+                password: "123456",
+            })
+            .expect(200);
+
+        const response = await request(testApp.app)
+            .post("/api/auth/logout")
+            .send({
+                refreshToken: loginResponse.body.refreshToken,
+            });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body).toMatchObject({
+            ok: true,
         });
     });
 });

@@ -3,7 +3,7 @@ SHELL := /bin/bash
 COMPOSE ?= docker compose
 BACKEND_DIR := back-painel
 FRONTEND_DIR := front-painel
-PRETTIER := $(BACKEND_DIR)/node_modules/.bin/prettier
+PRETTIER := $(abspath $(BACKEND_DIR)/node_modules/.bin/prettier)
 FORMAT_DIRS := $(BACKEND_DIR) $(FRONTEND_DIR)
 
 .PHONY: run-dev down-dev format format-check setup-hooks test
