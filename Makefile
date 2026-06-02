@@ -21,7 +21,7 @@ format:
 		exit 1; \
 	fi; \
 	for dir in $(FORMAT_DIRS); do \
-		"$(PRETTIER)" --write -- $$dir; \
+		( cd $$dir && "$(PRETTIER)" --write . ); \
 	done
 
 format-check:
@@ -31,7 +31,7 @@ format-check:
 		exit 1; \
 	fi; \
 	for dir in $(FORMAT_DIRS); do \
-		"$(PRETTIER)" --check -- $$dir; \
+		( cd $$dir && "$(PRETTIER)" --check . ); \
 	done
 
 setup-hooks:

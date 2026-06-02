@@ -37,13 +37,7 @@ format_files() {
 		exit 1
 	fi
 
-	local -a paths=()
-	local file
-	for file in "${files[@]}"; do
-		paths+=("$root/$file")
-	done
-
-	(cd "$repo_root" && "$prettier_bin" --write -- "${paths[@]}")
+	(cd "$repo_root/$root" && "$prettier_bin" --write -- "${files[@]}")
 
 	local -a staged_paths=()
 	for file in "${files[@]}"; do
