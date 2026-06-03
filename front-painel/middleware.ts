@@ -1,19 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-    fetchCurrentUserOnBackend,
-    refreshOnBackend,
-} from "@/lib/auth-backend";
+import { resolveAuthSession, type AuthSession } from "@/lib/auth-session";
 import { clearAuthCookies, setAuthCookies } from "@/lib/auth-cookies";
 import {
     ACCESS_TOKEN_COOKIE_NAME,
     REFRESH_TOKEN_COOKIE_NAME,
 } from "@/lib/auth-config";
-
-type AuthSession = {
-    id: string;
-    nome: string;
-    tipo: "ADMIN" | "VENDEDOR";
-};
 
 type ResolvedSession = {
     session: AuthSession;
@@ -67,32 +58,8 @@ function buildRequestHeaders(
 
 async function resolveSession(request: NextRequest): Promise<ResolvedSession> {
     const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE_NAME)?.value;
-    if (accessToken) {
-        const currentUser = await fetchCurrentUserOnBackend(accessToken);
-        if (currentUser.ok && currentUser.data) {
-            return {
-                session: currentUser.data,
-            };
-        }
-    }
-
     const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE_NAME)?.value;
-    if (!refreshToken) {
-        return null;
-    }
-
-    const refreshed = await refreshOnBackend(refreshToken);
-    if (!refreshed.ok || !refreshed.data) {
-        return null;
-    }
-
-    return {
-        session: refreshed.data.user,
-        cookies: {
-            accessToken: refreshed.data.accessToken,
-            refreshToken: refreshed.data.refreshToken,
-        },
-    };
+    return resolveAuthSession(accessToken ?? null, refreshToken ?? null);
 }
 
 function redirectWithCookies(
