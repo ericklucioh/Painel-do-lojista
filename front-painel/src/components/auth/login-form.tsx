@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useToast } from "@/components/providers/toaster";
 import { authService } from "@/services/auth.service";
 import { LoginSchema, type LoginFormValues } from "@/schemas/auth.schema";
 
@@ -25,7 +25,7 @@ function resolveRedirectTarget(nextPath: string | null): string {
 
 export function LoginForm({ nextPath }: { nextPath: string | null }) {
     const router = useRouter();
-    const [serverError, setServerError] = useState<string | null>(null);
+    const { toast } = useToast();
 
     const {
         register,
@@ -40,10 +40,12 @@ export function LoginForm({ nextPath }: { nextPath: string | null }) {
     });
 
     const onSubmit = handleSubmit(async (values) => {
-        setServerError(null);
-
         try {
             await authService.login(values);
+            toast({
+                variant: "success",
+                title: "Sessão iniciada com sucesso",
+            });
             router.replace(resolveRedirectTarget(nextPath));
             router.refresh();
         } catch (error) {
@@ -52,7 +54,11 @@ export function LoginForm({ nextPath }: { nextPath: string | null }) {
                     ? error.message
                     : "Não foi possível entrar no sistema.";
 
-            setServerError(message);
+            toast({
+                variant: "error",
+                title: "Falha no login",
+                description: message,
+            });
         }
     });
 
@@ -105,12 +111,6 @@ export function LoginForm({ nextPath }: { nextPath: string | null }) {
                         </span>
                     ) : null}
                 </label>
-
-                {serverError ? (
-                    <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                        {serverError}
-                    </div>
-                ) : null}
 
                 <button
                     type="submit"

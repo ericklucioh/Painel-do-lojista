@@ -11,28 +11,25 @@ import type {
 
 export const usersService = {
     list: async (query: UsersQuery = {}) => {
-        const response = await api.get<UsersListResponse>("/api/users", {
+        const response = await api.get<UsersListResponse>("/users", {
             params: query,
         });
         return response.data;
     },
     create: async (payload: CreateUserInput) => {
-        const response = await api.post<CreateUserResponse>(
-            "/api/users",
-            payload,
-        );
+        const response = await api.post<CreateUserResponse>("/users", payload);
         return response.data;
     },
     update: async (id: string, payload: UpdateUserInput) => {
         const response = await api.put<UpdateUserResponse>(
-            `/api/users/${id}`,
+            `/users/${id}`,
             payload,
         );
         return response.data;
     },
     deactivate: async (id: string) => {
         const response = await api.patch<DeactivateUserResponse>(
-            `/api/users/${id}/deactivate`,
+            `/users/${id}/deactivate`,
         );
         return response.data;
     },
