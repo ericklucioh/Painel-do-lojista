@@ -2,7 +2,12 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import request from "supertest";
 import { createTestApp } from "../../helpers/create-test-app";
 import { resetTestDatabase } from "../../helpers/test-database";
-import { loginAs, bearer } from "../../helpers/test-http";
+import {
+    bearer,
+    loginAsAdmin,
+    loginAsWrongUser,
+} from "../../helpers/test-http";
+import { buildExpiredAccessToken } from "../../helpers/auth-token";
 
 let testApp: ReturnType<typeof createTestApp>;
 
@@ -17,7 +22,12 @@ describe("stock routes", () => {
     });
 
     it("records incoming and outgoing stock movements and returns history", async () => {
-        const admin = await loginAs(testApp.app, "admin@painel.com", "123456");
+        const admin = await loginAsAdmin(testApp.app);
+        const beforeCount = await testApp.prisma.inventoryMovement.count({
+            where: {
+                productId: "prod_001",
+            },
+        });
 
         const entryResponse = await request(testApp.app)
             .post("/api/stock/entry")
@@ -109,11 +119,11 @@ describe("stock routes", () => {
             await testApp.prisma.inventoryMovement.findMany({
                 where: { productId: "prod_001" },
             });
-        expect(persistedMovements.length).toBeGreaterThanOrEqual(10);
+        expect(persistedMovements.length).toBe(beforeCount + 2);
     });
 
     it("allows stock to go negative on exit flows", async () => {
-        const admin = await loginAs(testApp.app, "admin@painel.com", "123456");
+        const admin = await loginAsAdmin(testApp.app);
 
         const response = await request(testApp.app)
             .post("/api/stock/exit")
@@ -142,7 +152,7 @@ describe("stock routes", () => {
     });
 
     it("records a return entry with a different reason", async () => {
-        const admin = await loginAs(testApp.app, "admin@painel.com", "123456");
+        const admin = await loginAsAdmin(testApp.app);
 
         const response = await request(testApp.app)
             .post("/api/stock/entry")
@@ -171,7 +181,7 @@ describe("stock routes", () => {
     });
 
     it("records an exit with damaged goods", async () => {
-        const admin = await loginAs(testApp.app, "admin@painel.com", "123456");
+        const admin = await loginAsAdmin(testApp.app);
 
         const response = await request(testApp.app)
             .post("/api/stock/exit")
@@ -196,6 +206,175 @@ describe("stock routes", () => {
                 balanceAfter: 2,
                 note: "Baixa por dano",
             },
+        });
+    });
+
+    it("rejects vendor access on admin-only stock routes", async () => {
+        const vendor = await loginAsWrongUser(testApp.app, "ADMIN");
+
+        const entryResponse = await request(testApp.app)
+            .post("/api/stock/entry")
+            .set("Authorization", bearer(vendor.accessToken))
+            .send({
+                productId: "prod_001",
+                type: "COMPRA",
+                quantity: 1,
+                note: "Bloqueado",
+            });
+
+        expect(entryResponse.statusCode).toBe(403);
+        expect(entryResponse.body).toMatchObject({
+            message: "Acesso negado",
+        });
+
+        const historyResponse = await request(testApp.app)
+            .get("/api/stock/history")
+            .set("Authorization", bearer(vendor.accessToken))
+            .query({ produto_id: "prod_001" });
+
+        expect(historyResponse.statusCode).toBe(403);
+        expect(historyResponse.body).toMatchObject({
+            message: "Acesso negado",
+        });
+    });
+
+    it("rejects stock entry requests without a token", async () => {
+        const response = await request(testApp.app)
+            .post("/api/stock/entry")
+            .send({
+                productId: "prod_001",
+                type: "COMPRA",
+                quantity: 1,
+                note: "Sem token",
+            });
+
+        expect(response.statusCode).toBe(401);
+        expect(response.body).toMatchObject({
+            message: "Token ausente",
+        });
+    });
+
+    it("rejects invalid and expired bearer tokens on stock routes", async () => {
+        const invalidResponse = await request(testApp.app)
+            .post("/api/stock/entry")
+            .set("Authorization", "Bearer token-invalido")
+            .send({
+                productId: "prod_001",
+                type: "COMPRA",
+                quantity: 1,
+                note: "Bloqueado",
+            });
+
+        expect(invalidResponse.statusCode).toBe(401);
+        expect(invalidResponse.body).toMatchObject({
+            message: "Token inválido",
+        });
+
+        const expiredToken = buildExpiredAccessToken({
+            role: "ADMIN",
+            sub: "user_admin_1",
+            email: "admin@painel.com",
+            nome: "Admin do Sistema",
+        });
+
+        const expiredResponse = await request(testApp.app)
+            .post("/api/stock/entry")
+            .set("Authorization", `Bearer ${expiredToken}`)
+            .send({
+                productId: "prod_001",
+                type: "COMPRA",
+                quantity: 1,
+                note: "Bloqueado",
+            });
+
+        expect(expiredResponse.statusCode).toBe(401);
+        expect(expiredResponse.body).toMatchObject({
+            message: "Token inválido",
+        });
+    });
+
+    it("rejects invalid stock entry payloads", async () => {
+        const admin = await loginAsAdmin(testApp.app);
+
+        const response = await request(testApp.app)
+            .post("/api/stock/entry")
+            .set("Authorization", bearer(admin.accessToken))
+            .send({
+                productId: "prod_001",
+                type: "COMPRA",
+                quantity: 0,
+                note: "Quantidade invalida",
+            });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toMatchObject({
+            message: "Validation error",
+        });
+    });
+
+    it("rejects invalid stock entry types", async () => {
+        const admin = await loginAsAdmin(testApp.app);
+
+        const response = await request(testApp.app)
+            .post("/api/stock/entry")
+            .set("Authorization", bearer(admin.accessToken))
+            .send({
+                productId: "prod_001",
+                type: "AJUSTE",
+                quantity: 1,
+                note: "Tipo invalido",
+            });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toMatchObject({
+            message: "Validation error",
+        });
+    });
+
+    it("rejects invalid stock exit payloads", async () => {
+        const admin = await loginAsAdmin(testApp.app);
+
+        const response = await request(testApp.app)
+            .post("/api/stock/exit")
+            .set("Authorization", bearer(admin.accessToken))
+            .send({
+                productId: "prod_001",
+                type: "PERDA",
+                quantity: 0,
+                note: "Quantidade invalida",
+            });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toMatchObject({
+            message: "Validation error",
+        });
+    });
+
+    it("rejects malformed history queries", async () => {
+        const admin = await loginAsAdmin(testApp.app);
+
+        const response = await request(testApp.app)
+            .get("/api/stock/history")
+            .set("Authorization", bearer(admin.accessToken))
+            .query({ produto_id: "" });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toMatchObject({
+            message: "Validation error",
+        });
+    });
+
+    it("rejects history for missing products", async () => {
+        const admin = await loginAsAdmin(testApp.app);
+
+        const response = await request(testApp.app)
+            .get("/api/stock/history")
+            .set("Authorization", bearer(admin.accessToken))
+            .query({ produto_id: "prod_missing" });
+
+        expect(response.statusCode).toBe(404);
+        expect(response.body).toMatchObject({
+            message: "Product not found",
         });
     });
 });

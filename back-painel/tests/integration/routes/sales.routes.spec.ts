@@ -2,7 +2,12 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import request from "supertest";
 import { createTestApp } from "../../helpers/create-test-app";
 import { resetTestDatabase } from "../../helpers/test-database";
-import { loginAs, bearer } from "../../helpers/test-http";
+import {
+    bearer,
+    loginAsVendor,
+    loginAsWrongUser,
+} from "../../helpers/test-http";
+import { buildExpiredAccessToken } from "../../helpers/auth-token";
 
 let testApp: ReturnType<typeof createTestApp>;
 
@@ -17,7 +22,7 @@ describe("sales routes", () => {
     });
 
     it("opens the register, creates the sale, prints the receipt and cancels it", async () => {
-        const vendor = await loginAs(testApp.app, "joao@painel.com", "123456");
+        const vendor = await loginAsVendor(testApp.app);
 
         const openResponse = await request(testApp.app)
             .post("/api/cash-registers/open")
@@ -80,7 +85,7 @@ describe("sales routes", () => {
         const saleId = saleResponse.body.sale.id as string;
 
         const printResponse = await request(testApp.app)
-            .post("/api/print-receipt")
+            .post("/api/sales/print-receipt")
             .set("Authorization", bearer(vendor.accessToken))
             .send({
                 saleId,
@@ -116,14 +121,12 @@ describe("sales routes", () => {
         expect(persistedSale).not.toBeNull();
         expect(persistedSale?.status).toBe("CANCELADA");
         expect(persistedSale?.items.length).toBe(2);
-        expect(persistedSale?.inventoryMovements.length).toBeGreaterThanOrEqual(
-            2,
-        );
-        expect(persistedSale?.cashMovements.length).toBeGreaterThanOrEqual(1);
+        expect(persistedSale?.inventoryMovements.length).toBe(4);
+        expect(persistedSale?.cashMovements.length).toBe(2);
     });
 
     it("creates a sale with a single item and no discount", async () => {
-        const vendor = await loginAs(testApp.app, "joao@painel.com", "123456");
+        const vendor = await loginAsVendor(testApp.app);
 
         const openResponse = await request(testApp.app)
             .post("/api/cash-registers/open")
@@ -169,10 +172,26 @@ describe("sales routes", () => {
                 ],
             },
         });
+
+        const persistedSale = await testApp.prisma.sale.findUnique({
+            where: {
+                id: saleResponse.body.sale.id as string,
+            },
+            include: {
+                items: true,
+                inventoryMovements: true,
+                cashMovements: true,
+            },
+        });
+
+        expect(persistedSale).not.toBeNull();
+        expect(persistedSale?.items.length).toBe(1);
+        expect(persistedSale?.inventoryMovements.length).toBe(1);
+        expect(persistedSale?.cashMovements.length).toBe(1);
     });
 
     it("creates a sale with three items and a discount", async () => {
-        const vendor = await loginAs(testApp.app, "joao@painel.com", "123456");
+        const vendor = await loginAsVendor(testApp.app);
 
         const openResponse = await request(testApp.app)
             .post("/api/cash-registers/open")
@@ -238,5 +257,178 @@ describe("sales routes", () => {
                 ]),
             },
         });
+
+        const persistedSale = await testApp.prisma.sale.findUnique({
+            where: {
+                id: saleResponse.body.sale.id as string,
+            },
+            include: {
+                items: true,
+                inventoryMovements: true,
+                cashMovements: true,
+            },
+        });
+
+        expect(persistedSale).not.toBeNull();
+        expect(persistedSale?.items.length).toBe(3);
+        expect(persistedSale?.inventoryMovements.length).toBe(3);
+        expect(persistedSale?.cashMovements.length).toBe(1);
+    });
+
+    it("rejects admin access on vendor-only sales routes", async () => {
+        const admin = await loginAsWrongUser(testApp.app, "VENDEDOR");
+
+        const createResponse = await request(testApp.app)
+            .post("/api/sales")
+            .set("Authorization", bearer(admin.accessToken))
+            .send({
+                cashRegisterId: "cash_register_1",
+                discountAmount: 0,
+                paymentMethod: "DINHEIRO",
+                items: [{ productId: "prod_001", quantity: 1 }],
+            });
+
+        expect(createResponse.statusCode).toBe(403);
+        expect(createResponse.body).toMatchObject({
+            message: "Acesso negado",
+        });
+
+        const printResponse = await request(testApp.app)
+            .post("/api/sales/print-receipt")
+            .set("Authorization", bearer(admin.accessToken))
+            .send({
+                saleId: "sale_1",
+            });
+
+        expect(printResponse.statusCode).toBe(403);
+        expect(printResponse.body).toMatchObject({
+            message: "Acesso negado",
+        });
+    });
+
+    it("rejects sale creation without a token", async () => {
+        const response = await request(testApp.app)
+            .post("/api/sales")
+            .send({
+                cashRegisterId: "cash_register_1",
+                discountAmount: 0,
+                paymentMethod: "DINHEIRO",
+                items: [{ productId: "prod_001", quantity: 1 }],
+            });
+
+        expect(response.statusCode).toBe(401);
+        expect(response.body).toMatchObject({
+            message: "Token ausente",
+        });
+    });
+
+    it("rejects sale creation with invalid or expired bearer tokens", async () => {
+        const invalidResponse = await request(testApp.app)
+            .post("/api/sales")
+            .set("Authorization", "Bearer token-invalido")
+            .send({
+                cashRegisterId: "cash_register_1",
+                discountAmount: 0,
+                paymentMethod: "DINHEIRO",
+                items: [{ productId: "prod_001", quantity: 1 }],
+            });
+
+        expect(invalidResponse.statusCode).toBe(401);
+        expect(invalidResponse.body).toMatchObject({
+            message: "Token inválido",
+        });
+
+        const expiredToken = buildExpiredAccessToken({
+            role: "VENDEDOR",
+            sub: "user_vendor_1",
+            email: "joao@painel.com",
+            nome: "Joao Vendedor",
+        });
+
+        const expiredResponse = await request(testApp.app)
+            .post("/api/sales")
+            .set("Authorization", `Bearer ${expiredToken}`)
+            .send({
+                cashRegisterId: "cash_register_1",
+                discountAmount: 0,
+                paymentMethod: "DINHEIRO",
+                items: [{ productId: "prod_001", quantity: 1 }],
+            });
+
+        expect(expiredResponse.statusCode).toBe(401);
+        expect(expiredResponse.body).toMatchObject({
+            message: "Token inválido",
+        });
+    });
+
+    it("rejects receipt printing without a sale id", async () => {
+        const vendor = await loginAsVendor(testApp.app);
+
+        const response = await request(testApp.app)
+            .post("/api/sales/print-receipt")
+            .set("Authorization", bearer(vendor.accessToken))
+            .send({});
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toMatchObject({
+            message: "Validation error",
+        });
+    });
+
+    it("rejects empty sale payloads", async () => {
+        const vendor = await loginAsVendor(testApp.app);
+
+        const response = await request(testApp.app)
+            .post("/api/sales")
+            .set("Authorization", bearer(vendor.accessToken))
+            .send({
+                cashRegisterId: "cash_register_1",
+                discountAmount: 0,
+                paymentMethod: "DINHEIRO",
+                items: [],
+            });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toMatchObject({
+            message: "Validation error",
+        });
+    });
+
+    it("rejects sale items with invalid quantities", async () => {
+        const vendor = await loginAsVendor(testApp.app);
+
+        const response = await request(testApp.app)
+            .post("/api/sales")
+            .set("Authorization", bearer(vendor.accessToken))
+            .send({
+                cashRegisterId: "cash_register_1",
+                discountAmount: 0,
+                paymentMethod: "DINHEIRO",
+                items: [{ productId: "prod_001", quantity: 0 }],
+            });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toMatchObject({
+            message: "Validation error",
+        });
+    });
+
+    it("rejects print receipt and cancel operations for missing sales", async () => {
+        const vendor = await loginAsVendor(testApp.app);
+
+        const printResponse = await request(testApp.app)
+            .post("/api/sales/print-receipt")
+            .set("Authorization", bearer(vendor.accessToken))
+            .send({
+                saleId: "sale_missing",
+            });
+
+        expect(printResponse.statusCode).toBe(404);
+
+        const cancelResponse = await request(testApp.app)
+            .delete("/api/sales/sale_missing")
+            .set("Authorization", bearer(vendor.accessToken));
+
+        expect(cancelResponse.statusCode).toBe(404);
     });
 });

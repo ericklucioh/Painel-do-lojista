@@ -22,6 +22,25 @@ export async function loginAs(
     };
 }
 
+export async function loginAsAdmin(app: Express): Promise<LoginResult> {
+    return loginAs(app, "admin@painel.com", "123456");
+}
+
+export async function loginAsVendor(app: Express): Promise<LoginResult> {
+    return loginAs(app, "joao@painel.com", "123456");
+}
+
+export async function loginAsWrongUser(
+    app: Express,
+    expectedRole: "ADMIN" | "VENDEDOR",
+): Promise<LoginResult> {
+    if (expectedRole === "ADMIN") {
+        return loginAsVendor(app);
+    }
+
+    return loginAsAdmin(app);
+}
+
 export function bearer(accessToken: string): string {
     return `Bearer ${accessToken}`;
 }

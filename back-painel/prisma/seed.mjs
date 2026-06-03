@@ -26,6 +26,9 @@ function parseMysqlUrl(databaseUrl) {
 }
 
 const now = new Date("2026-05-24T10:00:00.000Z");
+const hiddenAt = new Date("2026-05-25T08:00:00.000Z");
+const deletedAt = new Date("2026-05-29T18:00:00.000Z");
+const closedAt = new Date("2026-05-26T19:30:00.000Z");
 const passwordHash = hashSync("123456", 10);
 const decimal = (value) => new Prisma.Decimal(value);
 
@@ -53,6 +56,42 @@ const users = [
         createdAt: now,
         updatedAt: now,
         deletedAt: null,
+    },
+    {
+        id: "user_admin_2",
+        fullName: "Carla Administradora",
+        cpf: "33333333333",
+        email: "carla@painel.com",
+        passwordHash,
+        role: "ADMIN",
+        deactivatedAt: hiddenAt,
+        createdAt: now,
+        updatedAt: hiddenAt,
+        deletedAt: null,
+    },
+    {
+        id: "user_vendor_2",
+        fullName: "Bruno Vendedor",
+        cpf: "44444444444",
+        email: "bruno@painel.com",
+        passwordHash,
+        role: "VENDEDOR",
+        deactivatedAt: hiddenAt,
+        createdAt: now,
+        updatedAt: hiddenAt,
+        deletedAt: deletedAt,
+    },
+    {
+        id: "user_vendor_3",
+        fullName: "Livia Operadora",
+        cpf: "55555555555",
+        email: "livia@painel.com",
+        passwordHash,
+        role: "VENDEDOR",
+        deactivatedAt: null,
+        createdAt: now,
+        updatedAt: hiddenAt,
+        deletedAt: deletedAt,
     },
 ];
 
@@ -104,6 +143,54 @@ const products = [
         deletedAt: null,
         createdAt: now,
         updatedAt: now,
+    },
+    {
+        id: "prod_005",
+        ean: "7891000100053",
+        name: "Biscoito Recheado 120g",
+        salePrice: decimal("4.49"),
+        minStock: 15,
+        maxStock: 120,
+        deactivatedAt: hiddenAt,
+        deletedAt: null,
+        createdAt: now,
+        updatedAt: hiddenAt,
+    },
+    {
+        id: "prod_006",
+        ean: "7891000100060",
+        name: "Cafe Torrado 500g",
+        salePrice: decimal("18.9"),
+        minStock: 8,
+        maxStock: 50,
+        deactivatedAt: hiddenAt,
+        deletedAt: deletedAt,
+        createdAt: now,
+        updatedAt: hiddenAt,
+    },
+    {
+        id: "prod_007",
+        ean: "7891000100077",
+        name: "Sabonete Neutro",
+        salePrice: decimal("2.75"),
+        minStock: 20,
+        maxStock: 200,
+        deactivatedAt: null,
+        deletedAt: deletedAt,
+        createdAt: now,
+        updatedAt: hiddenAt,
+    },
+    {
+        id: "prod_008",
+        ean: "7891000100084",
+        name: "Detergente 500ml",
+        salePrice: decimal("3.35"),
+        minStock: 12,
+        maxStock: 80,
+        deactivatedAt: hiddenAt,
+        deletedAt: null,
+        createdAt: now,
+        updatedAt: hiddenAt,
     },
 ];
 
@@ -188,6 +275,86 @@ const inventoryMovements = [
         saleId: null,
         createdAt: now,
     },
+    {
+        id: "mov_009",
+        productId: "prod_005",
+        userId: "user_admin_1",
+        type: "COMPRA",
+        quantity: 48,
+        note: "Lote para vitrine desativada",
+        saleId: null,
+        createdAt: hiddenAt,
+    },
+    {
+        id: "mov_010",
+        productId: "prod_005",
+        userId: "user_admin_1",
+        type: "VENDA",
+        quantity: 5,
+        note: null,
+        saleId: null,
+        createdAt: hiddenAt,
+    },
+    {
+        id: "mov_011",
+        productId: "prod_006",
+        userId: "user_admin_1",
+        type: "COMPRA",
+        quantity: 20,
+        note: "Produto arquivado",
+        saleId: null,
+        createdAt: hiddenAt,
+    },
+    {
+        id: "mov_012",
+        productId: "prod_006",
+        userId: "user_admin_1",
+        type: "DANIFICADO",
+        quantity: 2,
+        note: "Lata amassada",
+        saleId: null,
+        createdAt: hiddenAt,
+    },
+    {
+        id: "mov_013",
+        productId: "prod_007",
+        userId: "user_admin_1",
+        type: "AJUSTE_ENTRADA",
+        quantity: 15,
+        note: "Ajuste manual",
+        saleId: null,
+        createdAt: hiddenAt,
+    },
+    {
+        id: "mov_014",
+        productId: "prod_007",
+        userId: "user_admin_1",
+        type: "PERDA",
+        quantity: 4,
+        note: "Quebra no transporte",
+        saleId: null,
+        createdAt: hiddenAt,
+    },
+    {
+        id: "mov_015",
+        productId: "prod_008",
+        userId: "user_admin_1",
+        type: "COMPRA",
+        quantity: 60,
+        note: null,
+        saleId: null,
+        createdAt: hiddenAt,
+    },
+    {
+        id: "mov_016",
+        productId: "prod_008",
+        userId: "user_admin_1",
+        type: "AJUSTE_SAIDA",
+        quantity: 10,
+        note: "Inventário",
+        saleId: null,
+        createdAt: hiddenAt,
+    },
 ];
 
 const cashRegister = {
@@ -200,6 +367,19 @@ const cashRegister = {
     closedAt: null,
     createdAt: now,
     updatedAt: now,
+    deletedAt: null,
+};
+
+const closedCashRegister = {
+    id: "cash_register_2",
+    openedByUserId: "user_vendor_1",
+    activeOpenedByUserId: null,
+    initialBalance: decimal("350.00"),
+    status: "FECHADO",
+    openedAt: hiddenAt,
+    closedAt: closedAt,
+    createdAt: hiddenAt,
+    updatedAt: closedAt,
     deletedAt: null,
 };
 
@@ -262,6 +442,46 @@ const cashMovements = [
         createdByUserId: "user_admin_1",
         createdAt: now,
     },
+    {
+        id: "cash_move_3",
+        cashRegisterId: "cash_register_2",
+        saleId: null,
+        type: "ABERTURA",
+        amount: decimal("350.00"),
+        note: "Caixa de demonstração fechado",
+        createdByUserId: "user_vendor_1",
+        createdAt: hiddenAt,
+    },
+    {
+        id: "cash_move_4",
+        cashRegisterId: "cash_register_2",
+        saleId: null,
+        type: "ENTRADA",
+        amount: decimal("80.00"),
+        note: "Ajuste manual",
+        createdByUserId: "user_admin_1",
+        createdAt: hiddenAt,
+    },
+    {
+        id: "cash_move_5",
+        cashRegisterId: "cash_register_2",
+        saleId: null,
+        type: "SAIDA",
+        amount: decimal("18.50"),
+        note: "Troco e baixa operacional",
+        createdByUserId: "user_admin_1",
+        createdAt: closedAt,
+    },
+    {
+        id: "cash_move_6",
+        cashRegisterId: "cash_register_2",
+        saleId: null,
+        type: "CANCELAMENTO",
+        amount: decimal("29.90"),
+        note: "Venda cancelada em demonstração",
+        createdByUserId: "user_vendor_1",
+        createdAt: closedAt,
+    },
 ];
 
 async function seedIfEmpty(prisma) {
@@ -283,6 +503,7 @@ async function seedIfEmpty(prisma) {
     }
 
     await prisma.cashRegister.create({ data: cashRegister });
+    await prisma.cashRegister.create({ data: closedCashRegister });
     await prisma.sale.create({ data: sale });
 
     for (const item of saleItems) {

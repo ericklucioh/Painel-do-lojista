@@ -2,7 +2,12 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import request from "supertest";
 import { createTestApp } from "../../helpers/create-test-app";
 import { resetTestDatabase } from "../../helpers/test-database";
-import { loginAs, bearer } from "../../helpers/test-http";
+import {
+    bearer,
+    loginAsAdmin,
+    loginAsVendor,
+    loginAsWrongUser,
+} from "../../helpers/test-http";
 
 let testApp: ReturnType<typeof createTestApp>;
 
@@ -17,8 +22,8 @@ describe("products routes", () => {
     });
 
     it("covers the happy path product flows", async () => {
-        const admin = await loginAs(testApp.app, "admin@painel.com", "123456");
-        const vendor = await loginAs(testApp.app, "joao@painel.com", "123456");
+        const admin = await loginAsAdmin(testApp.app);
+        const vendor = await loginAsVendor(testApp.app);
 
         const listResponse = await request(testApp.app)
             .get("/api/products")
@@ -141,7 +146,7 @@ describe("products routes", () => {
     });
 
     it("lists all active products without a search filter", async () => {
-        const admin = await loginAs(testApp.app, "admin@painel.com", "123456");
+        const admin = await loginAsAdmin(testApp.app);
 
         const response = await request(testApp.app)
             .get("/api/products")
@@ -182,7 +187,7 @@ describe("products routes", () => {
     });
 
     it("creates a critical product", async () => {
-        const admin = await loginAs(testApp.app, "admin@painel.com", "123456");
+        const admin = await loginAsAdmin(testApp.app);
 
         const response = await request(testApp.app)
             .post("/api/products")
@@ -212,7 +217,7 @@ describe("products routes", () => {
     });
 
     it("updates only the product price", async () => {
-        const admin = await loginAs(testApp.app, "admin@painel.com", "123456");
+        const admin = await loginAsAdmin(testApp.app);
 
         const response = await request(testApp.app)
             .put("/api/products/prod_003")
@@ -235,6 +240,158 @@ describe("products routes", () => {
                 isActive: true,
                 deletedAt: null,
             },
+        });
+    });
+
+    it("rejects vendor access on admin-only product routes", async () => {
+        const vendor = await loginAsWrongUser(testApp.app, "ADMIN");
+
+        const createResponse = await request(testApp.app)
+            .post("/api/products")
+            .set("Authorization", bearer(vendor.accessToken))
+            .send({
+                ean: "7891000100199",
+                name: "Produto Bloqueado",
+                price: 10.0,
+                minStock: 1,
+                maxStock: 10,
+            });
+
+        expect(createResponse.statusCode).toBe(403);
+        expect(createResponse.body).toMatchObject({
+            message: "Acesso negado",
+        });
+
+        const updateResponse = await request(testApp.app)
+            .put("/api/products/prod_001")
+            .set("Authorization", bearer(vendor.accessToken))
+            .send({
+                price: 15.0,
+            });
+
+        expect(updateResponse.statusCode).toBe(403);
+        expect(updateResponse.body).toMatchObject({
+            message: "Acesso negado",
+        });
+    });
+
+    it("rejects admin access on vendor-only product lookup", async () => {
+        const admin = await loginAsAdmin(testApp.app);
+
+        const response = await request(testApp.app)
+            .get("/api/products/by-ean/7891000100022")
+            .set("Authorization", bearer(admin.accessToken));
+
+        expect(response.statusCode).toBe(403);
+        expect(response.body).toMatchObject({
+            message: "Acesso negado",
+        });
+    });
+
+    it("rejects invalid product list queries", async () => {
+        const admin = await loginAsAdmin(testApp.app);
+
+        const response = await request(testApp.app)
+            .get("/api/products")
+            .set("Authorization", bearer(admin.accessToken))
+            .query({ page: 0 });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toMatchObject({
+            message: "Validation error",
+        });
+    });
+
+    it("rejects product list requests without a token", async () => {
+        const response = await request(testApp.app)
+            .get("/api/products")
+            .query({ page: 1 });
+
+        expect(response.statusCode).toBe(401);
+        expect(response.body).toMatchObject({
+            message: "Token ausente",
+        });
+    });
+
+    it("rejects duplicate EANs on product creation", async () => {
+        const admin = await loginAsAdmin(testApp.app);
+
+        const response = await request(testApp.app)
+            .post("/api/products")
+            .set("Authorization", bearer(admin.accessToken))
+            .send({
+                ean: "7891000100015",
+                name: "Duplicado",
+                price: 11.0,
+                minStock: 1,
+                maxStock: 10,
+            });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toMatchObject({
+            message: "Este EAN já existe",
+        });
+    });
+
+    it("rejects invalid product creation payloads", async () => {
+        const admin = await loginAsAdmin(testApp.app);
+
+        const response = await request(testApp.app)
+            .post("/api/products")
+            .set("Authorization", bearer(admin.accessToken))
+            .send({
+                ean: "7891000100999",
+                name: "Produto Invalido",
+                price: 0,
+                minStock: 10,
+                maxStock: 5,
+            });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toMatchObject({
+            message: "Validation error",
+        });
+    });
+
+    it("rejects updates for missing products", async () => {
+        const admin = await loginAsAdmin(testApp.app);
+
+        const response = await request(testApp.app)
+            .put("/api/products/prod_missing")
+            .set("Authorization", bearer(admin.accessToken))
+            .send({
+                price: 15.0,
+            });
+
+        expect(response.statusCode).toBe(404);
+        expect(response.body).toMatchObject({
+            message: "Product not found",
+        });
+    });
+
+    it("rejects malformed EAN lookup params", async () => {
+        const vendor = await loginAsVendor(testApp.app);
+
+        const response = await request(testApp.app)
+            .get("/api/products/by-ean/invalid-ean")
+            .set("Authorization", bearer(vendor.accessToken));
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toMatchObject({
+            message: "Validation error",
+        });
+    });
+
+    it("rejects deactivation of missing products", async () => {
+        const admin = await loginAsAdmin(testApp.app);
+
+        const response = await request(testApp.app)
+            .patch("/api/products/prod_missing/deactivate")
+            .set("Authorization", bearer(admin.accessToken));
+
+        expect(response.statusCode).toBe(404);
+        expect(response.body).toMatchObject({
+            message: "Product not found",
         });
     });
 });
