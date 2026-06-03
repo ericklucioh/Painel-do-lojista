@@ -48,11 +48,15 @@ export const CreateSaleResponseSchema = z.object({
 export const PrintReceiptResponseSchema = z.object({
     success: z.literal(true),
     saleId: z.string().optional(),
+    message: z.string().optional(),
 });
 
 export const CancelSaleResponseSchema = z.object({
     success: z.literal(true),
-    sale: SaleDtoSchema,
+    saleId: z.string(),
+    status: z.literal("CANCELLED"),
+    reverted: z.literal(true),
+    sale: SaleDtoSchema.optional(),
 });
 
 export type CreateSaleBody = z.infer<typeof CreateSaleBodySchema>;

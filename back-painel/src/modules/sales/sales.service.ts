@@ -184,9 +184,19 @@ export function createSalesService({
                 }
 
                 const totalAmount = roundCurrency(subtotal - discountAmount);
+                const lastSale = await tx.sale.findFirst({
+                    orderBy: {
+                        receiptNumber: "desc",
+                    },
+                    select: {
+                        receiptNumber: true,
+                    },
+                });
+                const receiptNumber = (lastSale?.receiptNumber ?? 0) + 1;
 
                 const sale = await tx.sale.create({
                     data: {
+                        receiptNumber,
                         cashRegisterId: input.cashRegisterId,
                         soldByUserId: input.soldByUserId,
                         subtotal: toDecimal(subtotal),
@@ -283,6 +293,7 @@ export function createSalesService({
             return {
                 success: true,
                 saleId: sale.id,
+                message: "Recibo impresso com sucesso",
             };
         },
 
@@ -357,6 +368,9 @@ export function createSalesService({
 
             return {
                 success: true,
+                saleId: cancelledSale.id,
+                status: "CANCELLED",
+                reverted: true,
                 sale: toSaleDto(cancelledSale),
             };
         },
