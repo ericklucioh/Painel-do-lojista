@@ -17,10 +17,14 @@ export const CreateUserBodySchema = z.object({
     role: z.enum(["ADMIN", "VENDEDOR"]),
 });
 
-export const UpdateUserBodySchema = z.object({
-    fullName: z.string().trim().min(1).optional(),
-    role: z.enum(["ADMIN", "VENDEDOR"]).optional(),
-});
+export const UpdateUserBodySchema = z
+    .object({
+        fullName: z.string().trim().min(1).optional(),
+        role: z.enum(["ADMIN", "VENDEDOR"]).optional(),
+    })
+    .refine((data) => data.fullName !== undefined || data.role !== undefined, {
+        message: "At least one field must be provided",
+    });
 
 export const UserListItemResponseSchema = z.object({
     id: z.string(),

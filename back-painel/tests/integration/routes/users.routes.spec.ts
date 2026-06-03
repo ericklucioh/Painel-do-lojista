@@ -51,7 +51,7 @@ describe("users routes", () => {
             .set("Authorization", bearer(accessToken))
             .send({
                 fullName: "Nova Pessoa",
-                cpf: "33333333333",
+                cpf: "66666666666",
                 email: "nova@painel.com",
                 password: "123456",
                 role: "VENDEDOR",
@@ -160,7 +160,7 @@ describe("users routes", () => {
             .set("Authorization", bearer(accessToken))
             .send({
                 fullName: "Admin Secundario",
-                cpf: "33333333333",
+                cpf: "77777777777",
                 email: "admin2@painel.com",
                 password: "123456",
                 role: "ADMIN",
@@ -185,7 +185,7 @@ describe("users routes", () => {
             .set("Authorization", bearer(accessToken))
             .send({
                 fullName: "Usuario Temporario",
-                cpf: "44444444444",
+                cpf: "88888888888",
                 email: "temporario@painel.com",
                 password: "123456",
                 role: "VENDEDOR",
@@ -229,7 +229,7 @@ describe("users routes", () => {
             .set("Authorization", bearer(accessToken))
             .send({
                 fullName: "Bloqueado",
-                cpf: "55555555555",
+                cpf: "99999999999",
                 email: "bloqueado@painel.com",
                 password: "123456",
                 role: "VENDEDOR",
@@ -315,7 +315,7 @@ describe("users routes", () => {
             .set("Authorization", bearer(accessToken))
             .send({
                 fullName: "Admin Duplicado",
-                cpf: "66666666666",
+                cpf: "10101010101",
                 email: "joao@painel.com",
                 password: "123456",
                 role: "ADMIN",
@@ -324,6 +324,26 @@ describe("users routes", () => {
         expect(response.statusCode).toBe(400);
         expect(response.body).toMatchObject({
             message: "Este e-mail já está registrado",
+        });
+    });
+
+    it("rejects duplicate cpfs on user creation", async () => {
+        const { accessToken } = await loginAsAdmin(testApp.app);
+
+        const response = await request(testApp.app)
+            .post("/api/users")
+            .set("Authorization", bearer(accessToken))
+            .send({
+                fullName: "CPF Duplicado",
+                cpf: "11111111111",
+                email: "cpf-duplicado@painel.com",
+                password: "123456",
+                role: "VENDEDOR",
+            });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toMatchObject({
+            message: "Este CPF já está registrado",
         });
     });
 
