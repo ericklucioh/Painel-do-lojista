@@ -1,4 +1,20 @@
 import { z } from "zod";
+import { SaleItemInputSchema } from "../sales-products/sales-products.schema";
+
+export const CreateSaleBodySchema = z.object({
+    cashRegisterId: z.string().trim().min(1),
+    discountAmount: z.coerce.number().nonnegative().default(0),
+    paymentMethod: z.literal("DINHEIRO"),
+    items: z.array(SaleItemInputSchema).min(1),
+});
+
+export const PrintReceiptBodySchema = z.object({
+    saleId: z.string().trim().min(1),
+});
+
+export const SaleIdParamsSchema = z.object({
+    id: z.string().trim().min(1),
+});
 
 export const SaleItemSchema = z.object({
     id: z.string(),
@@ -39,6 +55,9 @@ export const CancelSaleResponseSchema = z.object({
     sale: SaleDtoSchema,
 });
 
+export type CreateSaleBody = z.infer<typeof CreateSaleBodySchema>;
+export type PrintReceiptBody = z.infer<typeof PrintReceiptBodySchema>;
+export type SaleIdParams = z.infer<typeof SaleIdParamsSchema>;
 export type SaleItem = z.infer<typeof SaleItemSchema>;
 export type SaleDto = z.infer<typeof SaleDtoSchema>;
 export type CreateSaleResponse = z.infer<typeof CreateSaleResponseSchema>;

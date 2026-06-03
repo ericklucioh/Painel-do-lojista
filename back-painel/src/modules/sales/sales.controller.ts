@@ -1,10 +1,15 @@
 import type { RequestHandler } from "express";
 import { asyncHandler } from "../../utils/asyncHandler";
+import { createHttpError } from "../../utils/httpError";
 import {
     CancelSaleResponseSchema,
+    CreateSaleBodySchema,
     CreateSaleResponseSchema,
+    PrintReceiptBodySchema,
     PrintReceiptResponseSchema,
+    SaleIdParamsSchema,
 } from "./sales.schema";
+import type { SalesService } from "./sales.service";
 
 export interface SalesController {
     create: RequestHandler;
@@ -12,93 +17,81 @@ export interface SalesController {
     cancel: RequestHandler;
 }
 
-export interface CreateSalesControllerDependencies {}
-
-function toNumber(value: unknown): number {
-    return Number(value);
+export interface CreateSalesControllerDependencies {
+    service: SalesService;
 }
 
-export function createSalesController(): SalesController {
+function sendValidationError(
+    res: Parameters<RequestHandler>[1],
+    issues: unknown,
+): void {
+    res.status(400).json({
+        message: "Validation error",
+        issues,
+    });
+}
+
+export function createSalesController({
+    service,
+}: CreateSalesControllerDependencies): SalesController {
     return {
         create: asyncHandler(async (req, res) => {
-            const body = req.body as {
-                cashRegisterId?: string;
-                items?: Array<{
-                    productId?: string;
-                    quantity?: number;
-                }>;
-                discountAmount?: number;
-                paymentMethod?: "DINHEIRO";
-            };
+            const parsedBody = CreateSaleBodySchema.safeParse(req.body);
+            if (!parsedBody.success) {
+                sendValidationError(res, parsedBody.error.issues);
+                return;
+            }
 
-            const items = (body.items ?? []).map((item, index) => ({
-                id: `sale_item_${index + 1}`,
-                productId: item.productId ?? "",
-                productNameSnapshot: `Produto ${item.productId ?? index + 1}`,
-                productEanSnapshot: `ean-${index + 1}`,
-                unitPriceSnapshot: 0,
-                quantity: item.quantity ?? 0,
-                subtotal: 0,
-            }));
+            const authUser = req.authUser;
+            if (authUser === undefined) {
+                throw createHttpError("Token inválido", 401);
+            }
 
-            const response = CreateSaleResponseSchema.parse({
-                sale: {
-                    id: "sale_fake_1",
-                    receiptNumber: "001",
-                    cashRegisterId: body.cashRegisterId ?? "",
-                    soldByUserId: req.authUser?.sub ?? "",
-                    soldByUserName: req.authUser?.nome ?? "",
-                    subtotal: items.reduce(
-                        (total, item) => total + item.subtotal,
-                        0,
-                    ),
-                    discountAmount: toNumber(body.discountAmount ?? 0),
-                    totalAmount: 0,
-                    paymentMethod: body.paymentMethod ?? "DINHEIRO",
-                    status: "CONFIRMED",
-                    createdAt: new Date().toISOString(),
-                    items,
-                },
+            const response = await service.create({
+                cashRegisterId: parsedBody.data.cashRegisterId,
+                discountAmount: parsedBody.data.discountAmount,
+                paymentMethod: parsedBody.data.paymentMethod,
+                items: parsedBody.data.items,
+                soldByUserId: authUser.sub,
+                soldByUserName: authUser.nome,
             });
 
-            res.status(201).json(response);
+            res.status(201).json(CreateSaleResponseSchema.parse(response));
         }),
 
         printReceipt: asyncHandler(async (req, res) => {
-            const saleId = String(
-                (req.body as { saleId?: string }).saleId ?? "",
-            );
+            const parsedBody = PrintReceiptBodySchema.safeParse(req.body);
+            if (!parsedBody.success) {
+                sendValidationError(res, parsedBody.error.issues);
+                return;
+            }
 
-            const response = PrintReceiptResponseSchema.parse({
-                success: true,
-                saleId,
+            const response = await service.printReceipt({
+                saleId: parsedBody.data.saleId,
             });
 
-            res.status(200).json(response);
+            res.status(200).json(PrintReceiptResponseSchema.parse(response));
         }),
 
         cancel: asyncHandler(async (req, res) => {
-            const saleId = req.params.id;
+            const parsedParams = SaleIdParamsSchema.safeParse(req.params);
+            if (!parsedParams.success) {
+                sendValidationError(res, parsedParams.error.issues);
+                return;
+            }
 
-            const response = CancelSaleResponseSchema.parse({
-                success: true,
-                sale: {
-                    id: saleId,
-                    receiptNumber: "001",
-                    cashRegisterId: "cash_register_fake_1",
-                    soldByUserId: req.authUser?.sub ?? "",
-                    soldByUserName: req.authUser?.nome ?? "",
-                    subtotal: 0,
-                    discountAmount: 0,
-                    totalAmount: 0,
-                    paymentMethod: "DINHEIRO",
-                    status: "CANCELLED",
-                    createdAt: new Date().toISOString(),
-                    items: [],
-                },
+            const authUser = req.authUser;
+            if (authUser === undefined) {
+                throw createHttpError("Token inválido", 401);
+            }
+
+            const response = await service.cancel({
+                saleId: parsedParams.data.id,
+                cancelledByUserId: authUser.sub,
+                cancelledByUserName: authUser.nome,
             });
 
-            res.status(200).json(response);
+            res.status(200).json(CancelSaleResponseSchema.parse(response));
         }),
     };
 }

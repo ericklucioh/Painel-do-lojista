@@ -15,8 +15,11 @@ import { createStockController } from "./modules/stock/stock.controller";
 import { createStockRouter } from "./modules/stock/stock.routes";
 import { createSalesController } from "./modules/sales/sales.controller";
 import { createSalesRouter } from "./modules/sales/sales.routes";
+import { createSalesService } from "./modules/sales/sales.service";
+import { createSalesProductsService } from "./modules/sales-products/sales-products.service";
 import { createCashRegistersController } from "./modules/cash-registers/cash-registers.controller";
 import { createCashRegistersRouter } from "./modules/cash-registers/cash-registers.routes";
+import { createCashRegistersService } from "./modules/cash-registers/cash-registers.service";
 import { verifyToken } from "./middlewares/verifyToken";
 import type { AuthController } from "./modules/auth/auth.controller";
 import type { ProductsController } from "./modules/products/products.controller";
@@ -74,9 +77,22 @@ export function createApp({
             }),
         });
     const resolvedStockController = stockController ?? createStockController();
-    const resolvedSalesController = salesController ?? createSalesController();
+    const resolvedSalesService = createSalesService({
+        prisma: getPrisma(),
+        salesProductsService: createSalesProductsService(),
+    });
+    const resolvedSalesController =
+        salesController ??
+        createSalesController({
+            service: resolvedSalesService,
+        });
     const resolvedCashRegistersController =
-        cashRegistersController ?? createCashRegistersController();
+        cashRegistersController ??
+        createCashRegistersController({
+            service: createCashRegistersService({
+                prisma: getPrisma(),
+            }),
+        });
 
     app.get("/health", (_req, res) => {
         res.status(200).json({ ok: true });

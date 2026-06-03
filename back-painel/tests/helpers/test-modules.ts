@@ -8,8 +8,11 @@ import { createProductsService } from "../../src/modules/products/products.servi
 import type { ProductsController } from "../../src/modules/products/products.controller";
 import { createCashRegistersController } from "../../src/modules/cash-registers/cash-registers.controller";
 import { createCashRegistersRouter } from "../../src/modules/cash-registers/cash-registers.routes";
+import { createCashRegistersService } from "../../src/modules/cash-registers/cash-registers.service";
 import { createSalesController } from "../../src/modules/sales/sales.controller";
 import { createSalesRouter } from "../../src/modules/sales/sales.routes";
+import { createSalesService } from "../../src/modules/sales/sales.service";
+import { createSalesProductsService } from "../../src/modules/sales-products/sales-products.service";
 import { createStockController } from "../../src/modules/stock/stock.controller";
 import { createStockRouter } from "../../src/modules/stock/stock.routes";
 import { createUsersController } from "../../src/modules/users/users.controller";
@@ -20,7 +23,9 @@ import { createTestClient } from "./test-client";
 
 type TestPrismaForServices = Parameters<typeof createAuthService>[0]["prisma"] &
     Parameters<typeof createUsersService>[0]["prisma"] &
-    Parameters<typeof createProductsService>[0]["prisma"];
+    Parameters<typeof createProductsService>[0]["prisma"] &
+    Parameters<typeof createCashRegistersService>[0]["prisma"] &
+    Parameters<typeof createSalesService>[0]["prisma"];
 
 export interface TestModules {
     prisma: ReturnType<typeof createTestClient>;
@@ -53,8 +58,17 @@ export function createTestModules(): TestModules {
         service: createProductsService({ prisma: prismaForServices }),
     });
     const stockController = createStockController();
-    const salesController = createSalesController();
-    const cashRegistersController = createCashRegistersController();
+    const salesController = createSalesController({
+        service: createSalesService({
+            prisma: prismaForServices,
+            salesProductsService: createSalesProductsService(),
+        }),
+    });
+    const cashRegistersController = createCashRegistersController({
+        service: createCashRegistersService({
+            prisma: prismaForServices,
+        }),
+    });
 
     return {
         prisma,

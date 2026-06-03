@@ -1,44 +1,56 @@
 import type { RequestHandler } from "express";
 import { asyncHandler } from "../../utils/asyncHandler";
+import { createHttpError } from "../../utils/httpError";
 import {
-    CashRegisterSchema,
+    OpenCashRegisterBodySchema,
     OpenCashRegisterResponseSchema,
 } from "./cash-registers.schema";
+import type { CashRegistersService } from "./cash-registers.service";
 
 export interface CashRegistersController {
     open: RequestHandler;
 }
 
-export interface CreateCashRegistersControllerDependencies {}
-
-function toNumber(value: unknown): number {
-    return Number(value);
+export interface CreateCashRegistersControllerDependencies {
+    service: CashRegistersService;
 }
 
-export function createCashRegistersController(): CashRegistersController {
+function sendValidationError(
+    res: Parameters<RequestHandler>[1],
+    issues: unknown,
+): void {
+    res.status(400).json({
+        message: "Validation error",
+        issues,
+    });
+}
+
+export function createCashRegistersController({
+    service,
+}: CreateCashRegistersControllerDependencies): CashRegistersController {
     return {
         open: asyncHandler(async (req, res) => {
-            const body = req.body as {
-                initialBalance?: number;
-                note?: string;
-            };
+            const parsedBody = OpenCashRegisterBodySchema.safeParse(req.body);
+            if (!parsedBody.success) {
+                sendValidationError(res, parsedBody.error.issues);
+                return;
+            }
 
-            const response = OpenCashRegisterResponseSchema.parse({
-                cashRegister: CashRegisterSchema.parse({
-                    id: "cash_register_fake_1",
-                    openedByUserId: req.authUser?.sub ?? "",
-                    activeOpenedByUserId: req.authUser?.sub ?? "",
-                    initialBalance: toNumber(body.initialBalance ?? 0),
-                    status: "ABERTO",
-                    openedAt: new Date().toISOString(),
-                    closedAt: null,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                    deletedAt: null,
-                }),
+            const authUser = req.authUser;
+            if (authUser === undefined) {
+                throw createHttpError("Token inválido", 401);
+            }
+
+            const response = await service.open({
+                openedByUserId: authUser.sub,
+                openedByUserName: authUser.nome,
+                ...parsedBody.data,
             });
 
-            res.status(201).json(response);
+            const parsedResponse =
+                OpenCashRegisterResponseSchema.parse(response);
+
+            res.status(201).json(parsedResponse);
         }),
     };
 }
