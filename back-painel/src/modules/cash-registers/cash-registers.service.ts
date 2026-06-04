@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { createHttpError } from "../../utils/httpError";
 import type {
     OpenCashRegisterBody,
@@ -77,18 +77,34 @@ export function createCashRegistersService({
             }
 
             const now = new Date();
-            const createdCashRegister = (await prisma.cashRegister.create({
-                data: {
-                    openedByUserId: input.openedByUserId,
-                    activeOpenedByUserId: input.openedByUserId,
-                    initialBalance: input.initialBalance,
-                    status: "ABERTO",
-                    openedAt: now,
-                    closedAt: null,
-                    note: input.note ?? null,
-                    deletedAt: null,
-                },
-            })) as CashRegisterRecord;
+            let createdCashRegister: CashRegisterRecord;
+
+            try {
+                createdCashRegister = (await prisma.cashRegister.create({
+                    data: {
+                        openedByUserId: input.openedByUserId,
+                        activeOpenedByUserId: input.openedByUserId,
+                        initialBalance: input.initialBalance,
+                        status: "ABERTO",
+                        openedAt: now,
+                        closedAt: null,
+                        note: input.note ?? null,
+                        deletedAt: null,
+                    },
+                })) as CashRegisterRecord;
+            } catch (error) {
+                if (
+                    error instanceof Prisma.PrismaClientKnownRequestError &&
+                    error.code === "P2002"
+                ) {
+                    throw createHttpError(
+                        "Já existe um caixa aberto para este usuário",
+                        400,
+                    );
+                }
+
+                throw error;
+            }
 
             return {
                 cashRegister: toResponse(
