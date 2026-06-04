@@ -11,7 +11,7 @@ export const UserIdParamsSchema = z.object({
 
 export const CreateUserBodySchema = z.object({
     fullName: z.string().trim().min(1),
-    cpf: z.string().trim().min(1),
+    cpf: z.string().trim().min(1).optional(),
     email: z.string().email(),
     password: z.string().min(1),
     role: z.enum(["ADMIN", "VENDEDOR"]),

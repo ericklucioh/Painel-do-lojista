@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `User` MODIFY `cpf` VARCHAR(191) NULL;

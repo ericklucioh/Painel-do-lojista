@@ -192,11 +192,11 @@ export function createSalesService({
                         receiptNumber: true,
                     },
                 });
-                const receiptNumber = (lastSale?.receiptNumber ?? 0) + 1;
+                const nextReceiptNumber = (lastSale?.receiptNumber ?? 0) + 1;
 
                 const sale = await tx.sale.create({
                     data: {
-                        receiptNumber,
+                        receiptNumber: nextReceiptNumber,
                         cashRegisterId: input.cashRegisterId,
                         soldByUserId: input.soldByUserId,
                         subtotal: toDecimal(subtotal),

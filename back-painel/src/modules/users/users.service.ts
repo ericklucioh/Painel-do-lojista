@@ -125,17 +125,19 @@ export function createUsersService({
         },
 
         async create(input) {
-            const existingCpf = (await prisma.user.findUnique({
-                where: {
-                    cpf: input.cpf,
-                },
-                select: {
-                    id: true,
-                },
-            })) as { id: string } | null;
+            if (input.cpf !== undefined) {
+                const existingCpf = (await prisma.user.findUnique({
+                    where: {
+                        cpf: input.cpf,
+                    },
+                    select: {
+                        id: true,
+                    },
+                })) as { id: string } | null;
 
-            if (existingCpf !== null) {
-                throw createHttpError("Este CPF já está registrado", 400);
+                if (existingCpf !== null) {
+                    throw createHttpError("Este CPF já está registrado", 400);
+                }
             }
 
             const existingUser = (await prisma.user.findUnique({
@@ -154,7 +156,7 @@ export function createUsersService({
             const passwordHash = await hash(input.password, 10);
             const createdUser = await prisma.user.create({
                 data: {
-                    cpf: input.cpf,
+                    cpf: input.cpf ?? null,
                     fullName: input.fullName,
                     email: input.email,
                     passwordHash,
