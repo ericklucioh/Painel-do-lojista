@@ -98,7 +98,7 @@ Use apenas se você estiver ajustando o backend ou o frontend isoladamente.
 - `make format-check` - valida formatação.
 - `make lint` - executa lint nos dois apps.
 - `make build` - executa build nos dois apps.
-- `make test` - executa a suíte do backend.
+- `make test` - executa a suíte do backend via Docker Compose.
 - `make setup-hooks` - configura hooks locais do Git.
 
 ### Backend
@@ -123,7 +123,7 @@ Use apenas se você estiver ajustando o backend ou o frontend isoladamente.
 1. Suba o banco com Docker Compose.
 2. Configure as variáveis de ambiente.
 3. Rode migrations e seed do backend quando necessário.
-4. Inicie o backend e o frontend.
+4. Inicie o backend e o frontend com `make run-dev`.
 5. Acesse o painel e faça login com os dados do seed.
 
 ## Observações

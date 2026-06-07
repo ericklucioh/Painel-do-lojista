@@ -70,6 +70,9 @@ Se você for rodar localmente sem Docker, ajuste `DATABASE_URL` e `SHADOW_DATABA
 - `npm run test:run` - mesma preparação, executando a suíte em modo run.
 - `npm run test:watch` - mesma preparação, executando a suíte em watch.
 
+Esses scripts são internos ao backend.
+No fluxo oficial do repositório, a suíte é acionada pelo comando raiz `make test`.
+
 ## Desenvolvimento Local
 
 ```bash
@@ -100,7 +103,7 @@ Fluxo esperado:
 2. `npm run prisma:test:reset`
 3. `vitest`
 
-Na prática, os comandos `npm run test`, `npm run test:run` e `npm run test:watch` já executam essa sequência.
+Na prática, o comando raiz `make test` executa essa sequência dentro do Docker Compose.
 
 ## Observações
 
