@@ -17,8 +17,8 @@ Purpose:
 
 Files:
 
-- [`.env.example`](/home/erick/code/projs/PAINEL-DO-LOJISTA-/.env.example)
-- [`docker-compose.yml`](/home/erick/code/projs/PAINEL-DO-LOJISTA-/docker-compose.yml)
+- [`.env.example`](./.env.example)
+- [`docker-compose.yml`](./docker-compose.yml)
 
 Variables:
 
@@ -51,10 +51,10 @@ Purpose:
 
 Files:
 
-- [`back-painel/.env.example`](/home/erick/code/projs/PAINEL-DO-LOJISTA-/back-painel/.env.example)
-- [`back-painel/src/config/env.ts`](/home/erick/code/projs/PAINEL-DO-LOJISTA-/back-painel/src/config/env.ts)
-- [`back-painel/src/config/prisma.ts`](/home/erick/code/projs/PAINEL-DO-LOJISTA-/back-painel/src/config/prisma.ts)
-- [`back-painel/prisma.config.ts`](/home/erick/code/projs/PAINEL-DO-LOJISTA-/back-painel/prisma.config.ts)
+- [`back-painel/.env.example`](./back-painel/.env.example)
+- [`back-painel/src/config/env.ts`](./back-painel/src/config/env.ts)
+- [`back-painel/src/config/prisma.ts`](./back-painel/src/config/prisma.ts)
+- [`back-painel/prisma.config.ts`](./back-painel/prisma.config.ts)
 
 Variables:
 
@@ -89,10 +89,10 @@ Purpose:
 
 Files:
 
-- [`front-painel/.env.example`](/home/erick/code/projs/PAINEL-DO-LOJISTA-/front-painel/.env.example)
-- [`front-painel/src/lib/auth-config.ts`](/home/erick/code/projs/PAINEL-DO-LOJISTA-/front-painel/src/lib/auth-config.ts)
-- [`front-painel/src/lib/backend-proxy.ts`](/home/erick/code/projs/PAINEL-DO-LOJISTA-/front-painel/src/lib/backend-proxy.ts)
-- [`front-painel/middleware.ts`](/home/erick/code/projs/PAINEL-DO-LOJISTA-/front-painel/middleware.ts)
+- [`front-painel/.env.example`](./front-painel/.env.example)
+- [`front-painel/src/lib/auth-config.ts`](./front-painel/src/lib/auth-config.ts)
+- [`front-painel/src/lib/backend-proxy.ts`](./front-painel/src/lib/backend-proxy.ts)
+- [`front-painel/middleware.ts`](./front-painel/middleware.ts)
 
 Variables:
 

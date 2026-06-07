@@ -6,7 +6,7 @@ const testEnv = {
 } as const;
 
 for (const [key, value] of Object.entries(testEnv)) {
-    if (process.env[key] === undefined) {
+    if (process.env[key] === undefined || process.env[key]?.trim() === "") {
         process.env[key] = value;
     }
 }
