@@ -33,11 +33,13 @@ Variables:
 - `DATABASE_URL_DOCKER`
 - `SHADOW_DATABASE_URL`
 - `SHADOW_DATABASE_URL_DOCKER`
+- `CORS_ORIGINS`
 
 Notes:
 
 - `DATABASE_URL_DOCKER` and `SHADOW_DATABASE_URL_DOCKER` are used by the backend container.
 - `DATABASE_URL` and `SHADOW_DATABASE_URL` are host variants for manual runs outside Docker.
+- `CORS_ORIGINS` configures the browser origins allowed to call the backend with credentials.
 
 ## 2. `back-painel`
 
@@ -62,6 +64,7 @@ Variables:
 - `REFRESH_TOKEN_EXPIRES_IN`
 - `ACCESS_TOKEN_COOKIE_NAME`
 - `AUTH_COOKIE_NAME`
+- `CORS_ORIGINS`
 - `DATABASE_URL`
 - `DATABASE_URL_DOCKER`
 - `SHADOW_DATABASE_URL`
@@ -119,6 +122,7 @@ Notes:
   - `REFRESH_TOKEN_SECRET`
   - `ACCESS_TOKEN_COOKIE_NAME`
   - `AUTH_COOKIE_NAME`
+  - `CORS_ORIGINS`
 - Frontend host:
   - `BACKEND_URL`
   - optional `NEXT_PUBLIC_API_URL`

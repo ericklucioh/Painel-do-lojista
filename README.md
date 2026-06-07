@@ -79,7 +79,7 @@ Existem arquivos de exemplo para as três camadas do projeto:
 Fluxo recomendado:
 
 1. Copie os arquivos de exemplo para os respectivos `.env`.
-2. Ajuste `DATABASE_URL`, `SHADOW_DATABASE_URL`, `JWT_SECRET` e `REFRESH_TOKEN_SECRET`.
+2. Ajuste `DATABASE_URL`, `SHADOW_DATABASE_URL`, `JWT_SECRET`, `REFRESH_TOKEN_SECRET` e `CORS_ORIGINS`.
 3. Configure `BACKEND_URL` no frontend para o endereço da API.
 4. Use `make run-dev` para subir a stack completa.
 
