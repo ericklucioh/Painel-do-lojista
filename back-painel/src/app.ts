@@ -1,5 +1,6 @@
 import express, { type Express } from "express";
 import cors from "cors";
+import { env } from "./config/env";
 import { errorHandler } from "./middlewares/errorHandler";
 import { verifyToken } from "./middlewares/verifyToken";
 import {
@@ -9,10 +10,18 @@ import {
 
 export function createApp(dependencies: BackendDependencies = {}): Express {
     const app = express();
+    const allowedOrigins = new Set(env.corsOrigins);
 
     app.use(
         cors({
-            origin: true,
+            origin(origin, callback) {
+                if (origin === undefined) {
+                    callback(null, true);
+                    return;
+                }
+
+                callback(null, allowedOrigins.has(origin));
+            },
             credentials: true,
         }),
     );

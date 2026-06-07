@@ -16,7 +16,11 @@ services:
       - ./docker/mysql/conf.d:/etc/mysql/conf.d:ro
       - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent",
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -51,6 +55,7 @@ services:
       PORT: 3001
       DATABASE_URL: ${DATABASE_URL_DOCKER}
       SHADOW_DATABASE_URL: ${SHADOW_DATABASE_URL_DOCKER}
+      CORS_ORIGINS: ${CORS_ORIGINS}
     volumes:
       - ./back-painel:/app
       - back_painel_node_modules:/app/node_modules
@@ -58,7 +63,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "node -e \"fetch('http://127.0.0.1:3001/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))\"",
+          'node -e "fetch(''http://127.0.0.1:3001/health'').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"',
         ]
       interval: 10s
       timeout: 5s
@@ -88,7 +93,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "node -e \"fetch('http://127.0.0.1:3000').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))\"",
+          'node -e "fetch(''http://127.0.0.1:3000'').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"',
         ]
       interval: 10s
       timeout: 5s
