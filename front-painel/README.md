@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# front-painel
 
-## Getting Started
+Interface web do Painel do Lojista em Next.js com App Router.
 
-First, run the development server:
+Este app cuida da navegação, da experiência de operação e da camada de sessão no browser.
+
+## Requisitos
+
+- Node.js 20+
+- npm
+- Backend disponível para atender as requisições
+
+## Configuração de Ambiente
+
+Arquivo de exemplo:
+
+- [`.env.example`](./.env.example)
+
+Variáveis principais:
+
+- `BACKEND_URL`
+- `NEXT_PUBLIC_API_URL`
+
+`BACKEND_URL` é a preferência para chamadas server-side. `NEXT_PUBLIC_API_URL` funciona como fallback quando o backend precisa ser acessado pelo browser.
+
+## Instalação
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `npm run dev` - inicia o app em desenvolvimento.
+- `npm run build` - gera a build de produção.
+- `npm run start` - executa a build gerada.
+- `npm run lint` - executa ESLint.
+- `npm run format` - formata o código.
+- `npm run format:check` - valida a formatação.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Desenvolvimento Local
 
-## Learn More
+1. Suba o backend.
+2. Configure `BACKEND_URL` para `http://localhost:3001`.
+3. Inicie o frontend com `npm run dev`.
 
-To learn more about Next.js, take a look at the following resources:
+O app usa o backend como origem de dados e mantém a sessão por meio da camada intermediária do lado servidor.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Build
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run build
+npm run start
+```
 
-## Deploy on Vercel
+## Observações
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- O projeto segue o App Router.
+- A proteção de sessão e de rotas depende da integração com o backend.
+- A base atual prioriza build, lint e arquitetura; ainda não há suíte de testes dedicada no frontend.

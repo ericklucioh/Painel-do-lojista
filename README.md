@@ -2,14 +2,14 @@
 
 Sistema full-stack para gestão de loja com foco em operação de caixa, catálogo, usuários, estoque e vendas.
 
-O projeto foi dividido em dois aplicativos principais:
+O repositório é dividido em dois aplicativos:
 
-- `back-painel`: API em Node.js com Express, Prisma, MySQL, autenticação JWT e regras de negócio.
-- `front-painel`: interface em Next.js com App Router, React Hook Form, Zod, Tailwind e componentes de UI.
+- `back-painel`: API em Node.js com Express, Prisma e MySQL.
+- `front-painel`: interface em Next.js com App Router, React Hook Form, Zod, Tailwind e shadcn/ui.
 
 ## Visão Geral
 
-Este repositório implementa um painel operacional para o dia a dia da loja. A proposta é cobrir o fluxo básico de um MVP de varejo:
+O projeto cobre o fluxo central de um MVP de varejo:
 
 - autenticação com login e refresh token
 - administração de usuários
@@ -19,99 +19,51 @@ Este repositório implementa um painel operacional para o dia a dia da loja. A p
 - tela de vendas com carrinho por EAN
 - finalização de venda com resumo e recibo
 
-## Principais Módulos
-
-### Autenticação
-
-- login com e-mail e senha
-- JWT de acesso com refresh token
-- proteção de rotas no frontend e no backend
-- logout com limpeza de sessão
-
-### Usuários
-
-- criação, listagem, edição e desativação
-- controle de acesso por papel
-- foco em perfis como admin e vendedor
-
-### Produtos
-
-- cadastro com EAN, nome, preço e estoque
-- edição e desativação
-- busca por EAN para fluxo de PDV
-
-### Estoque
-
-- registro de entrada e saída
-- histórico de movimentos
-- atualização do saldo do produto
-
-### Vendas
-
-- carrinho por leitura de código de barras
-- ajuste de quantidade
-- desconto sobre a venda
-- abertura de caixa antes da operação
-- resumo final antes da confirmação
-
-### Caixa e Recibo
-
-- controle de caixa aberto
-- geração de venda com dados consolidados
-- fluxo preparado para impressão de recibo
-
-## Stack
-
-- Backend: Node.js, Express, Prisma, MySQL, Zod, JWT
-- Frontend: Next.js, React, TypeScript, React Hook Form, Zod, Tailwind, shadcn/ui
-- Infra: Docker Compose, Adminer, scripts de ambiente local
-- Testes: Vitest e testes de integração no backend
-
-## Estrutura do Repositório
+## Estrutura
 
 ```text
 .
 ├── back-painel/        # API, Prisma, regras de negócio e testes
 ├── front-painel/       # App web em Next.js
-├── docker-compose.yml  # Orquestra banco, API e frontend
-├── Makefile            # Atalhos de desenvolvimento
+├── docker-compose.yml  # MySQL, Adminer, backend e frontend
+├── Makefile            # Atalhos de desenvolvimento e verificação
 ├── DESAFIO.md          # Requisitos funcionais do projeto
 ├── ENVIRONMENT.md      # Mapa central das variáveis de ambiente
-├── ROTAS.md            # Contrato das rotas da API
-├── SCHEMA.md           # Modelo de dados e regras do banco
-└── TASKS.md            # Lista de tarefas e evolução
+├── back-painel/README.md
+└── front-painel/README.md
 ```
+
+## Documentação Base
+
+- [DESAFIO.md](./DESAFIO.md) descreve os requisitos do desafio.
+- [ENVIRONMENT.md](./ENVIRONMENT.md) centraliza as variáveis de ambiente.
+- [back-painel/README.md](./back-painel/README.md) explica o backend.
+- [front-painel/README.md](./front-painel/README.md) explica o frontend.
 
 ## Requisitos
 
-- Node.js instalado localmente, se for rodar fora do Docker
-- Docker e Docker Compose para ambiente completo
-- npm para instalar dependências
+- Node.js 20+ para execução local.
+- Docker e Docker Compose para subir a stack completa.
+- npm para instalar dependências em cada app.
 
-## Configuração de Ambiente
+## Configuração
 
-Veja o mapa central em [ENVIRONMENT.md](/home/erick/code/projs/PAINEL-DO-LOJISTA-/ENVIRONMENT.md) para a divisão completa das variáveis entre as 3 instâncias do projeto.
+Existem arquivos de exemplo para as três camadas do projeto:
 
-O projeto já possui arquivos de exemplo de ambiente:
+- [`.env.example`](./.env.example)
+- [`back-painel/.env.example`](./back-painel/.env.example)
+- [`front-painel/.env.example`](./front-painel/.env.example)
 
-- `/.env.example`
-- `/back-painel/.env.example`
-- `/front-painel/.env.example`
+Fluxo recomendado:
 
-Copie os arquivos de exemplo para os respectivos `.env` antes de rodar localmente, quando necessário.
-
-Variáveis importantes:
-
-- banco MySQL
-- `DATABASE_URL`
-- `SHADOW_DATABASE_URL`
-- `JWT_SECRET`
-- `REFRESH_TOKEN_SECRET`
-- URL do backend para o frontend
+1. Copie os arquivos de exemplo para os respectivos `.env`.
+2. Ajuste `DATABASE_URL`, `SHADOW_DATABASE_URL`, `JWT_SECRET` e `REFRESH_TOKEN_SECRET`.
+3. Configure `BACKEND_URL` no frontend para o endereço da API.
+4. Use `make run-dev` para subir a stack com Docker ou rode os apps localmente.
 
 ## Como Rodar
 
-### Ambiente completo com Docker
+### Com Docker
 
 ```bash
 make run-dev
@@ -129,7 +81,7 @@ Serviços expostos por padrão:
 - Backend: `http://localhost:3001`
 - Adminer: `http://localhost:8080`
 
-### Rodando localmente sem Docker
+### Localmente, sem Docker
 
 Backend:
 
@@ -147,43 +99,46 @@ npm install
 npm run dev
 ```
 
-## Scripts Úteis
+## Comandos Principais
 
-### Raiz
+### Makefile
 
-- `make run-dev` - sobe a stack com Docker Compose
-- `make down-dev` - derruba os containers
-- `make format` - formata backend e frontend
-- `make format-check` - valida formatação
-- `make setup-hooks` - configura hooks locais do Git
-- `make test` - executa os testes do backend
+- `make run-dev` - sobe a stack com Docker Compose.
+- `make down-dev` - derruba os containers.
+- `make format` - formata backend e frontend.
+- `make format-check` - valida formatação.
+- `make lint` - executa lint nos dois apps.
+- `make build` - executa build nos dois apps.
+- `make test` - executa a suíte do backend.
+- `make setup-hooks` - configura hooks locais do Git.
 
 ### Backend
 
-- `npm run dev` - modo desenvolvimento
-- `npm run build` - build TypeScript
-- `npm run test:run` - executa testes
-- `npm run prisma:seed` - popula o banco com dados iniciais
-- `scripts/seed.ts` - ponto de entrada em TypeScript para o seed do projeto
+- `npm run dev` - modo de desenvolvimento.
+- `npm run build` - build TypeScript; o Prisma client é gerado antes do build.
+- `npm run lint` - lint do projeto.
+- `npm run test:run` - executa os testes de integração e serviço.
+- `npm run prisma:generate` - gera o Prisma client.
+- `npm run prisma:migrate:deploy` - aplica migrations no banco configurado.
+- `npm run prisma:seed` - popula o banco com dados iniciais.
 
 ### Frontend
 
-- `npm run dev` - modo desenvolvimento
-- `npm run build` - build de produção
-- `npm run lint` - lint do projeto
+- `npm run dev` - modo de desenvolvimento.
+- `npm run build` - build de produção.
+- `npm run start` - executa o build gerado.
+- `npm run lint` - lint do projeto.
 
 ## Fluxo de Desenvolvimento
 
 1. Suba o banco com Docker Compose.
 2. Configure as variáveis de ambiente.
-3. Rode as migrations e o seed do Prisma, quando necessário.
-   - O seed principal também está exposto em `scripts/seed.ts`.
+3. Rode migrations e seed do backend quando necessário.
 4. Inicie o backend e o frontend.
-5. Acesse o painel e faça login com os usuários de teste do seed.
+5. Acesse o painel e faça login com os dados do seed.
 
 ## Observações
 
-- O repositório segue separação clara entre domínio, serviços e transporte.
-- As validações usam Zod no backend e no frontend.
-- O frontend conversa com a API via camada intermediária, preservando cookies e sessão.
-- O projeto foi desenhado para ser evolutivo, mas o foco atual é o MVP operacional.
+- O backend concentra a regra de negócio e expõe a API.
+- O frontend usa uma camada intermediária para conversar com a API e manter sessão/cookies.
+- A documentação de ambiente é centralizada em [ENVIRONMENT.md](./ENVIRONMENT.md).

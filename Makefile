@@ -6,7 +6,7 @@ FRONTEND_DIR := front-painel
 PRETTIER := $(abspath $(BACKEND_DIR)/node_modules/.bin/prettier)
 FORMAT_DIRS := $(BACKEND_DIR) $(FRONTEND_DIR)
 
-.PHONY: run-dev down-dev format format-check setup-hooks test
+.PHONY: run-dev down-dev format format-check lint build setup-hooks test
 
 run-dev:
 	@$(COMPOSE) up --build --remove-orphans
@@ -33,6 +33,16 @@ format-check:
 	for dir in $(FORMAT_DIRS); do \
 		( cd $$dir && "$(PRETTIER)" --check . ); \
 	done
+
+lint:
+	@set -e; \
+	( cd $(BACKEND_DIR) && npm run lint ); \
+	( cd $(FRONTEND_DIR) && npm run lint )
+
+build:
+	@set -e; \
+	( cd $(BACKEND_DIR) && npm run build ); \
+	( cd $(FRONTEND_DIR) && npm run build )
 
 setup-hooks:
 	@git config --local core.hooksPath .githooks
