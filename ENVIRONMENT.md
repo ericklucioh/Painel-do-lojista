@@ -1,6 +1,6 @@
 # Environment Map
 
-Central reference for the 3 runtime instances in this repository.
+Central reference for the runtime instances in this repository.
 
 ## Instances
 
@@ -12,7 +12,7 @@ Central reference for the 3 runtime instances in this repository.
 
 Purpose:
 
-- Orchestrates local infrastructure
+- Orchestrates the full local stack
 - Provides MySQL, Adminer, backend, and frontend service wiring
 
 Files:
@@ -37,7 +37,7 @@ Variables:
 Notes:
 
 - `DATABASE_URL_DOCKER` and `SHADOW_DATABASE_URL_DOCKER` are used by the backend container.
-- `DATABASE_URL` and `SHADOW_DATABASE_URL` are the local host variants for manual runs outside Docker.
+- `DATABASE_URL` and `SHADOW_DATABASE_URL` are host variants for manual runs outside Docker.
 
 ## 2. `back-painel`
 
@@ -49,10 +49,10 @@ Purpose:
 
 Files:
 
-- [`back-painel/.env.example`](/home/erick/code/projs/PAINEL-DOLOJISTA-/back-painel/.env.example)
-- [`back-painel/src/config/env.ts`](/home/erick/code/projs/PAINEL-DOLOJISTA-/back-painel/src/config/env.ts)
-- [`back-painel/src/config/prisma.ts`](/home/erick/code/projs/PAINEL-DOLOJISTA-/back-painel/src/config/prisma.ts)
-- [`back-painel/prisma.config.ts`](/home/erick/code/projs/PAINEL-DOLOJISTA-/back-painel/prisma.config.ts)
+- [`back-painel/.env.example`](/home/erick/code/projs/PAINEL-DO-LOJISTA-/back-painel/.env.example)
+- [`back-painel/src/config/env.ts`](/home/erick/code/projs/PAINEL-DO-LOJISTA-/back-painel/src/config/env.ts)
+- [`back-painel/src/config/prisma.ts`](/home/erick/code/projs/PAINEL-DO-LOJISTA-/back-painel/src/config/prisma.ts)
+- [`back-painel/prisma.config.ts`](/home/erick/code/projs/PAINEL-DO-LOJISTA-/back-painel/prisma.config.ts)
 
 Variables:
 
@@ -106,9 +106,9 @@ Notes:
 
 ## Recommended Local Setup
 
-- Root `.env` for compose and infrastructure values
-- `back-painel/.env` for backend secrets and Prisma runtime
-- `front-painel/.env` or Vercel project env vars for the frontend API URL
+- Root `.env` for compose and infrastructure values used by `make run-dev`
+- `back-painel/.env` for backend secrets and Prisma runtime when running outside Docker
+- `front-painel/.env` or Vercel project env vars for the frontend API URL when running outside Docker
 
 ## Recommended Deploy Setup
 
