@@ -56,9 +56,9 @@ export function SalesPage() {
     const [products, setProducts] = useState<ProductListItem[]>([]);
     const [loadingProducts, setLoadingProducts] = useState(true);
     const [eanInput, setEanInput] = useState("");
-    const [cashRegister, setCashRegister] = useState<CashRegister | null>(null);
-    const [hasHydratedCashRegister, setHasHydratedCashRegister] =
-        useState(false);
+    const [cashRegister, setCashRegister] = useState<CashRegister | null>(() =>
+        readCashRegisterFromStorage(),
+    );
     const [isCashRegisterModalOpen, setIsCashRegisterModalOpen] =
         useState(false);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
@@ -119,12 +119,7 @@ export function SalesPage() {
     }, [toast]);
 
     useEffect(() => {
-        setCashRegister(readCashRegisterFromStorage());
-        setHasHydratedCashRegister(true);
-    }, []);
-
-    useEffect(() => {
-        if (!hasHydratedCashRegister || typeof window === "undefined") {
+        if (typeof window === "undefined") {
             return;
         }
 
@@ -137,7 +132,7 @@ export function SalesPage() {
             CASH_REGISTER_STORAGE_KEY,
             JSON.stringify(cashRegister),
         );
-    }, [cashRegister, hasHydratedCashRegister]);
+    }, [cashRegister]);
 
     const summary = useMemo(
         () => calculateSaleSummary(cartItems, discountInput),
