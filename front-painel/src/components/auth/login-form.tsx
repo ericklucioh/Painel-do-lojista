@@ -34,10 +34,6 @@ export function LoginForm({ nextPath }: { nextPath: string | null }) {
         formState: { errors, isSubmitting },
     } = useForm<LoginFormValues>({
         resolver: zodResolver(LoginSchema),
-        defaultValues: {
-            email: "admin@painel.com",
-            password: "123456",
-        },
     });
 
     const onSubmit = handleSubmit(async (values) => {
@@ -103,12 +99,6 @@ export function LoginForm({ nextPath }: { nextPath: string | null }) {
                     {isSubmitting ? "Entrando..." : "Entrar"}
                 </button>
             </form>
-
-            <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                Credenciais de teste:{" "}
-                <span className="font-medium">admin@painel.com</span> /{" "}
-                <span className="font-medium">123456</span>
-            </div>
         </section>
     );
 }

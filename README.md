@@ -1,264 +1,110 @@
 # Painel do Lojista
 
-Resolução de um **desafio técnico full-stack** para desenvolvimento de um MVP de gestão de loja, conforme os requisitos descritos em [`DESAFIO.md`](./DESAFIO.md).
+Projeto desenvolvido como **desafio tecnico full-stack** para entregar um **MVP de gestao de loja** com autenticacao, controle de acesso, cadastro de usuarios e produtos, estoque, caixa e fluxo de vendas.
 
-O objetivo do projeto é demonstrar capacidade de implementação em um cenário próximo de uma aplicação real, cobrindo autenticação, CRUDs, validação, integração frontend-backend, controle de estoque, operação de caixa e fluxo de vendas.
+Este repositorio deve ser lido como um **desafio tecnico/MVP**, nao como produto pronto para producao. Os requisitos funcionais originais estao em [`DESAFIO.md`](./DESAFIO.md).
 
-## Sobre o Desafio
+## Objetivo do projeto
 
-O desafio propõe a construção de um **Minimum Viable Core System (MVCS)** para um painel de lojista, com foco em:
+Demonstrar implementacao ponta a ponta de um painel de lojista com:
 
-- autenticação com JWT e refresh token;
-- controle de acesso por perfil de usuário;
-- CRUD de usuários;
-- CRUD de produtos;
-- busca de produto por EAN;
-- registro de entrada e saída de estoque;
+- autenticacao com JWT e refresh token;
+- autorizacao por perfil;
+- CRUD de usuarios e produtos;
+- controle de estoque;
 - abertura de caixa;
-- carrinho de vendas;
-- finalização de venda à vista;
-- geração de recibo;
-- integração entre frontend, backend e banco de dados;
-- documentação e setup local com Docker.
+- carrinho de vendas e fechamento de venda;
+- integracao entre frontend, backend e banco de dados.
 
-A especificação completa está disponível em [`DESAFIO.md`](./DESAFIO.md).
+## Stack
 
-## Stack Utilizada
+- Backend: Node.js, Express, TypeScript, Prisma, MySQL
+- Frontend: Next.js App Router, React, React Hook Form, Zod, Tailwind CSS, shadcn/ui
+- Infra local: Docker Compose, Adminer, Makefile
 
-O repositório é dividido em dois aplicativos principais:
-
-- [`back-painel`](./back-painel): API em **Node.js**, **Express**, **TypeScript**, **Prisma** e **MySQL**.
-- [`front-painel`](./front-painel): interface em **Next.js**, **App Router**, **React Hook Form**, **Zod**, **Tailwind CSS** e **shadcn/ui**.
-
-Também há suporte a execução local com:
-
-- Docker Compose;
-- MySQL 8;
-- Adminer;
-- Makefile;
-- arquivos `.env.example`.
-
-## Visão Geral da Solução
-
-O projeto implementa o fluxo central de um MVP de varejo:
-
-- login com autenticação segura;
-- sessão com access token e refresh token;
-- rotas protegidas por perfil;
-- administração de usuários;
-- cadastro e manutenção de produtos;
-- controle de estoque com entradas e saídas;
-- abertura de caixa;
-- tela de vendas com carrinho por EAN;
-- aplicação de desconto;
-- finalização de venda;
-- geração de resumo/recibo;
-- cancelamento de venda;
-- persistência em banco relacional.
-
-## Estrutura do Repositório
+## Estrutura
 
 ```text
 .
-├── back-painel/        # API, Prisma, regras de negócio e testes
-├── front-painel/       # App web em Next.js
-├── docker-compose.yml  # MySQL, Adminer, backend e frontend
-├── Makefile            # Atalhos de desenvolvimento e validação
-├── DESAFIO.md          # Especificação do desafio técnico
-├── ENVIRONMENT.md      # Mapa central das variáveis de ambiente
-├── back-painel/README.md
-└── front-painel/README.md
+├── back-painel/        # API, Prisma, regras de negocio e testes
+├── front-painel/       # Aplicacao web em Next.js
+├── docker-compose.yml  # Stack local com MySQL, Adminer, backend e frontend
+├── Makefile            # Comandos de desenvolvimento
+├── DESAFIO.md          # Especificacao do desafio tecnico
+├── ENVIRONMENT.md      # Referencia de variaveis de ambiente
+└── LICENSE             # Licenca MIT
 ```
 
-## Documentação
+## Como rodar
 
-- [`DESAFIO.md`](./DESAFIO.md): requisitos funcionais e técnicos do desafio.
-- [`ENVIRONMENT.md`](./ENVIRONMENT.md): variáveis de ambiente usadas no projeto.
-- [`back-painel/README.md`](./back-painel/README.md): detalhes do backend.
-- [`front-painel/README.md`](./front-painel/README.md): detalhes do frontend.
+### Requisitos
 
-## Funcionalidades Implementadas
+- Docker
+- Docker Compose
+- Make
+- Node.js 20+ apenas se quiser rodar apps manualmente fora do Docker
 
-### Autenticação e Sessão
+### Configuracao
 
-- Login com e-mail e senha.
-- Access token com expiração curta.
-- Refresh token para renovação de sessão.
-- Cookies `httpOnly`.
-- Proteção de rotas.
-- Controle de acesso por perfil.
+1. Copie os arquivos de exemplo para `.env`:
 
-### Usuários
+```bash
+cp .env.example .env
+cp back-painel/.env.example back-painel/.env
+cp front-painel/.env.example front-painel/.env
+```
 
-- Listagem de usuários.
-- Criação de usuário.
-- Edição de dados.
-- Desativação com soft delete.
-- Restrição de acesso para administradores.
+2. Ajuste os segredos e conexoes conforme seu ambiente, principalmente:
 
-### Produtos
+- `JWT_SECRET`
+- `REFRESH_TOKEN_SECRET`
+- `DATABASE_URL`
+- `SHADOW_DATABASE_URL`
+- `CORS_ORIGINS`
+- `BACKEND_URL`
 
-- Listagem paginada.
-- Busca.
-- Cadastro de produto.
-- Edição.
-- Inativação.
-- Validação de EAN.
-- Validação de preço.
-- Controle de estoque mínimo e máximo.
-- Indicação de estoque crítico.
-
-### Estoque
-
-- Registro de entrada.
-- Registro de saída.
-- Histórico de movimentações.
-- Atualização do saldo de estoque.
-
-### Caixa e Vendas
-
-- Abertura de caixa.
-- Validação de caixa aberto antes da venda.
-- Busca de produto por EAN.
-- Carrinho de venda.
-- Alteração de quantidade.
-- Remoção de itens.
-- Aplicação de desconto.
-- Finalização de venda.
-- Geração de resumo/recibo.
-- Cancelamento de venda.
-
-## Como Rodar
-
-O projeto foi pensado para rodar principalmente com Docker.
-
-### Caminho recomendado
+3. Suba a stack:
 
 ```bash
 make run-dev
 ```
 
-Ou diretamente:
+Alternativa direta:
 
 ```bash
 docker compose up --build
 ```
 
-Serviços expostos por padrão:
+### Servicos locais
 
 - Frontend: `http://localhost:3000`
 - Backend: `http://localhost:3001`
 - Adminer: `http://localhost:8080`
 
-## Requisitos
+## Credenciais de demo
 
-- Docker
-- Docker Compose
-- Make
-- Node.js 20+ apenas para execução manual fora do Docker
-- npm apenas para manutenção local dos apps fora do fluxo principal
+Se o banco for populado com o seed de desenvolvimento do backend, as credenciais de demo sao:
 
-## Configuração de Ambiente
+- Admin: `admin@painel.com` / `123456`
+- Vendedor: `joao@painel.com` / `123456`
 
-Existem arquivos de exemplo para as três camadas do projeto:
+Essas credenciais existem para avaliacao local do desafio e nao devem permanecer como padrao em ambientes reais.
 
-- [`.env.example`](./.env.example)
-- [`back-painel/.env.example`](./back-painel/.env.example)
-- [`front-painel/.env.example`](./front-painel/.env.example)
-
-Fluxo recomendado:
-
-1. Copie os arquivos `.env.example` para seus respectivos `.env`.
-2. Ajuste as variáveis necessárias, principalmente:
-   - `DATABASE_URL`
-   - `SHADOW_DATABASE_URL`
-   - `JWT_SECRET`
-   - `REFRESH_TOKEN_SECRET`
-   - `CORS_ORIGINS`
-   - `BACKEND_URL`
-3. Suba a stack com:
+## Comandos principais
 
 ```bash
 make run-dev
+make down-dev
+make format
+make format-check
+make lint
+make build
+make test
 ```
 
-## Comandos Principais
+## Documentacao complementar
 
-### Makefile
-
-```bash
-make run-dev        # sobe a stack com Docker Compose
-make down-dev       # derruba os containers
-make format         # formata backend e frontend
-make format-check   # valida formatação
-make lint           # executa lint nos dois apps
-make build          # executa build nos dois apps
-make test           # executa a suíte do backend via Docker Compose
-make setup-hooks    # configura hooks locais do Git
-```
-
-### Backend
-
-```bash
-npm run dev
-npm run build
-npm run lint
-npm run test:run
-npm run prisma:generate
-npm run prisma:migrate:deploy
-npm run prisma:seed
-```
-
-### Frontend
-
-```bash
-npm run dev
-npm run build
-npm run start
-npm run lint
-```
-
-## Execução Manual
-
-A execução sem Docker existe, mas não é o fluxo principal do projeto.
-
-Use esse caminho apenas se quiser trabalhar isoladamente no backend ou frontend.
-
-Para detalhes específicos, consulte:
-
-- [`back-painel/README.md`](./back-painel/README.md)
-- [`front-painel/README.md`](./front-painel/README.md)
-
-## Qualidade e Validação
-
-O projeto foi estruturado para demonstrar não apenas funcionamento, mas também organização e boas práticas esperadas em um desafio técnico:
-
-- separação entre frontend e backend;
-- validação de entrada com Zod;
-- autenticação baseada em JWT;
-- autorização por perfil;
-- ORM com Prisma;
-- migrations versionadas;
-- seed de dados;
-- tratamento de erros;
-- scripts de lint, build e testes;
-- setup local com Docker;
-- documentação de ambiente.
-
-## Observações Técnicas
-
-- O backend concentra as regras de negócio e expõe a API REST.
-- O frontend utiliza uma camada intermediária para comunicação com a API e controle de sessão.
-- O banco de dados utilizado no ambiente local é MySQL via Docker.
-- A documentação das variáveis de ambiente está centralizada em [`ENVIRONMENT.md`](./ENVIRONMENT.md).
-- O projeto foi desenvolvido com foco em um MVP funcional, seguindo os requisitos do desafio técnico.
-
-## Status do Projeto
-
-Este repositório representa a entrega de um desafio técnico full-stack.
-
-O foco principal foi cumprir o escopo proposto em [`DESAFIO.md`](./DESAFIO.md), mantendo uma estrutura compreensível, validável e adequada para avaliação técnica.
-
-## Autor
-
-Desenvolvido por Érick Lúcio como projeto de desafio técnico e portfólio.
+- [`DESAFIO.md`](./DESAFIO.md): escopo e criterios do desafio
+- [`ENVIRONMENT.md`](./ENVIRONMENT.md): variaveis de ambiente do projeto
+- [`back-painel/README.md`](./back-painel/README.md): detalhes do backend
+- [`front-painel/README.md`](./front-painel/README.md): detalhes do frontend
